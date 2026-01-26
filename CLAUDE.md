@@ -112,23 +112,106 @@ You help create on-brand Drupal designs, marketing materials, and visual content
 
 ## GUI Blocks
 
-Modular graphics inspired by computing interfaces.
+Modular graphics inspired by computing interfaces. **Use GUI blocks to add depth and brand recognition to any Drupal design.**
+
+### When to Use GUI Blocks
+- **Cards**: Event cards, feature cards, testimonial cards
+- **Headers**: Section headers, page heroes, modals
+- **Panels**: Sidebars, callout boxes, alerts
+- **Decorative**: Background elements, visual interest
 
 ### Creation
-1. Create rounded rectangle
-2. Duplicate, shift 45° diagonal (3 line widths apart)
-3. Match corner radii
-4. Add 0-3 control dots + shadow lines at 45°
+1. Create rounded rectangle (border-radius: 12-20px)
+2. Duplicate, shift 45° diagonal (3 line widths / 4-6px apart)
+3. Match corner radii on both layers
+4. Add 0-3 control dots (unfilled circles) at top-left
+5. Optional: Add 45° shadow lines for depth
+
+### CSS Implementation
+
+```css
+/* GUI Block Base */
+.gui-block {
+  position: relative;
+  border-radius: 16px;
+  border: 2px solid var(--drupal-blue);
+  background: white;
+}
+
+/* Shadow layer (45° offset) */
+.gui-block::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  right: -5px;
+  bottom: -5px;
+  border-radius: 16px;
+  border: 2px solid var(--drupal-blue);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+/* Control dots (unfilled circles) */
+.gui-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.gui-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: transparent; /* Never fill! */
+}
+
+/* 45° Shadow lines pattern */
+.gui-shadow-lines {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    currentColor 8px,
+    currentColor 10px
+  );
+  opacity: 0.1;
+}
+```
+
+### Color Variations by Purpose
+| Purpose | Border Color | Use Case |
+|---------|-------------|----------|
+| Primary/CTA | Blue #009CDE | Main actions, featured content |
+| Highlight | Yellow #FFC423 | Important items, milestones |
+| Secondary | Dark Blue #006AA9 | Supporting content |
+| Creative | Purple #CCBAF4 | Innovation, community |
+| Alert | Red #F46351 | Warnings, urgent items |
 
 ### Rules
-- Max 3 colors (including white)
-- Don't fill control dots
-- No gradients inside blocks
-- Match corner radii
+- Max 3 colors per block (including white)
+- **Never fill control dots** - always outline only
+- No gradients inside GUI Blocks
+- Match corner radii on all layers
+- Shadow offset should be consistent (45° diagonal, 4-6px)
+- Control dots: 0-3 depending on space
 
 ### Frame vs Window
 **As Frame**: Focus on 1-2 people, detail shots, impactful headlines
 **As Window**: More copy space, multiple images, pair with background theme
+
+### Decorative Usage
+For visual interest, place semi-transparent GUI blocks in headers/backgrounds:
+```css
+.decorative-gui-block {
+  position: absolute;
+  border: 2px solid var(--drupal-blue);
+  border-radius: 12px;
+  opacity: 0.2;
+  transform: rotate(-5deg); /* Slight rotation adds dynamism */
+}
+```
 
 ## Patterns & Gradients
 
