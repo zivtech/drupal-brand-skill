@@ -1,7 +1,7 @@
 ---
-name: Drupal Brand Design Expert
+name: drupal-brand-skill
 description: Expert in Drupal brand guidelines for on-brand designs and content
-version: 2.1.0
+version: 2.1.1
 ---
 
 # Drupal Brand Design Expert
