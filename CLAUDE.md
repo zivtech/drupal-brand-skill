@@ -114,11 +114,20 @@ You help create on-brand Drupal designs, marketing materials, and visual content
 
 Modular graphics inspired by computing interfaces. **Use GUI blocks to add depth and brand recognition to any Drupal design.**
 
-### When to Use GUI Blocks
-- **Cards**: Event cards, feature cards, testimonial cards
-- **Headers**: Section headers, page heroes, modals
-- **Panels**: Sidebars, callout boxes, alerts
-- **Decorative**: Background elements, visual interest
+### When to Use Full GUI Blocks (with control dots + layered frames)
+- **Hero elements**: Page headers, feature spotlights
+- **Section headers**: Era dividers, category headers
+- **Modal windows**: Dialogs, popups, overlays
+- **Single callouts**: Featured testimonials, key statistics
+- **Decorative**: Background accents, visual interest
+
+### When to Use Simple Border Accent (NOT full GUI blocks)
+For **repeated elements** in a list/grid, use a simpler approach:
+- **Card lists**: Timeline cards, blog posts, product cards
+- **Table rows**: Data displays, dashboards
+- **List items**: Navigation items, search results
+
+**Why?** Full GUI blocks with control dots on every card creates visual clutter. Reserve the full treatment for singular, important elements.
 
 ### Creation
 1. Create rounded rectangle (border-radius: 12-20px)
@@ -129,6 +138,7 @@ Modular graphics inspired by computing interfaces. **Use GUI blocks to add depth
 
 ### CSS Implementation
 
+#### Full GUI Block (for hero elements, headers)
 ```css
 /* GUI Block Base */
 .gui-block {
@@ -166,8 +176,36 @@ Modular graphics inspired by computing interfaces. **Use GUI blocks to add depth
   border: 2px solid currentColor;
   background: transparent; /* Never fill! */
 }
+```
 
-/* 45° Shadow lines pattern */
+#### Simple Border Accent (for repeated cards/list items)
+```css
+/* Clean card with border accent - use for lists */
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  border-left: 5px solid var(--drupal-blue);
+  box-shadow: 0 4px 16px rgba(18, 40, 95, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(18, 40, 95, 0.15);
+}
+
+/* Priority variations */
+.card.priority-high {
+  border-left-color: var(--drupal-blue);
+  background: linear-gradient(135deg, white 0%, #CCEDF9 100%);
+}
+.card.priority-medium { border-left-color: var(--drupal-dark-blue); }
+.card.priority-low { border-left-color: var(--drupal-purple); }
+```
+
+#### 45° Shadow Lines Pattern (for backgrounds)
+```css
 .gui-shadow-lines {
   background: repeating-linear-gradient(
     45deg,
