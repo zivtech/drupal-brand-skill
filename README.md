@@ -24,7 +24,7 @@ Once installed, invoke the skill in Claude Code using:
 /drupal-brand
 ```
 
-The skill will then be available to help with:
+The skill provides brand expertise for both answering questions and actively applying guidelines to your work:
 
 - **Color recommendations** - Get the right hex codes and color combinations for your design
 - **Logo guidance** - Understand which logo variant to use and placement rules
@@ -34,13 +34,20 @@ The skill will then be available to help with:
 
 ### Example Prompts
 
-After invoking `/drupal-brand`, you can ask questions like:
+After invoking `/drupal-brand`, you can ask questions:
 
 - "What colors should I use for a professional presentation?"
 - "Where can I find the primary Drupal logo in SVG format?"
 - "What font should I use for headlines?"
-- "Help me create a branded banner for social media"
 - "What are the rules for placing the logo on dark backgrounds?"
+
+You can also direct Claude to apply brand guidelines to assets you're working on:
+
+- "Review this CSS file and update the colors to match Drupal brand guidelines"
+- "Check this HTML template for brand compliance and fix any issues"
+- "Update the typography in this component to use the correct fonts"
+- "Generate a color palette CSS file using the official Drupal colors"
+- "Create an SVG banner using the brand gradients and patterns"
 
 ## Testing
 
@@ -67,13 +74,15 @@ To verify the skill is working correctly:
 
 ```
 drupal-brand-skill/
-├── logos/          # Drupal CMS Product Logos (SVG + PNG)
-├── graphics/       # Primary Drupal Logos - Drop & Wordmark (SVG + PNG)
-├── assets/         # GUI Blocks & Template Graphics
-├── colors/         # Color Palettes & Specifications
-├── gradients/      # Brand Gradient SVGs
-├── patterns/       # Dynamic Pattern SVGs
-└── fonts/          # ZT Gatha & Noto Sans Typefaces
+├── logos/            # Drupal CMS Product Logos (SVG + PNG)
+├── graphics/         # Primary Drupal Logos - Drop & Wordmark (SVG + PNG)
+├── assets/           # GUI Blocks & Template Graphics
+├── colors/           # Color Palettes & Specifications
+├── gradients/        # Brand Gradient SVGs
+├── patterns/         # Dynamic Pattern SVGs
+├── fonts/            # ZT Gatha & Noto Sans Typefaces
+├── templates/        # Ready-to-use presentation & document templates
+└── brand-compliance/ # Tools & guides for updating existing assets
 ```
 
 ## Quick Reference
@@ -87,6 +96,20 @@ drupal-brand-skill/
 | Gradient backgrounds | `/gradients/` |
 | Dynamic patterns | `/patterns/` |
 | Brand fonts | `/fonts/` |
+| Presentation templates | `/templates/presentations/` |
+| Brand compliance tools | `/brand-compliance/` |
+
+## Brand Compliance Tools
+
+Have an existing presentation or asset that needs to align with Drupal brand guidelines? We've tested three approaches:
+
+| Approach | Best For | Effort |
+|----------|----------|--------|
+| Theme Update | Quick fixes, theme-dependent decks | Low |
+| Manual Checklist | Quality-focused updates | Medium |
+| Fresh Template | Complete overhauls | High |
+
+See `/brand-compliance/` for detailed guides, checklists, and example results.
 
 ## Brand Colors
 
