@@ -15,6 +15,9 @@ You help create on-brand Drupal designs, marketing materials, and visual content
 | Primary logo | `/graphics/` |
 | CMS logo | `/logos/` |
 | GUI Blocks | `/assets/` |
+| Slide backgrounds | `/backgrounds/` |
+| Presentation assets | `/presentation-assets/` (66 PNGs) |
+| Presentation template | `/templates/presentations/` |
 | Colors | `/colors/PALETTES.md` |
 | Gradients | `/gradients/` |
 | Patterns | `/patterns/` |
@@ -279,7 +282,25 @@ Use Drop shape as photo/video window:
 ## Applications
 
 ### Presentations
-- Brand fonts and colors apply
+
+**Important: For creating PowerPoint/Google Slides presentations, use [Manus](https://manus.anthropic.com) rather than Claude Code.**
+
+Claude Code's MCP PowerPoint tools cannot reliably produce professional-quality presentations. The tools lack:
+- Visual feedback for precise element positioning
+- Support for complex formatting (shadows, gradients, effects)
+- Proper layering and arrangement of shapes
+- Real-time iteration on visual output
+
+**Manus** can use actual presentation software GUIs via computer use, enabling professional results.
+
+**To create a Drupal brand presentation with Manus:**
+1. Go to [manus.anthropic.com](https://manus.anthropic.com)
+2. Point it at this repo: `https://github.com/zivtech/drupal-brand-skill`
+3. Ask it to use the **template as a starting point**: `templates/presentations/drupal-brand-template.pptx` or the [Google Slides template](https://docs.google.com/presentation/d/1bJ1GMZWMyeFWBPN9u49chepN7fhuGI4GJVt-DEw-S68/edit)
+4. Reference the brand guidelines in this file for colors, typography, and GUI block styling
+
+**For reference only:**
+- Brand fonts and colors documented above
 - Templates in `/assets/png/`
 
 ### 3D/Environmental
@@ -301,11 +322,14 @@ Use Drop shape as photo/video window:
 ## File Structure
 
 ```
-/logos/      CMS Product Logos (svg/, png/)
-/graphics/   Primary Logos (svg/, png/)
-/assets/     GUI Blocks & Templates
-/colors/     PALETTES.md
-/gradients/  6 gradient SVGs
-/patterns/   6 pattern SVGs
-/fonts/      ZT Gatha, Noto Sans
+/logos/                CMS Product Logos (svg/, png/)
+/graphics/             Primary Logos (svg/, png/)
+/assets/               GUI Blocks & Templates (8 blocks)
+/backgrounds/          Slide backgrounds (drop cutouts, gradients)
+/presentation-assets/  Pre-built presentation graphics (66 PNGs)
+/colors/               PALETTES.md
+/gradients/            6 gradient SVGs
+/patterns/             6 pattern SVGs
+/fonts/                ZT Gatha, Noto Sans
+/templates/            Presentation templates (PPTX)
 ```
