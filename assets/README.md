@@ -7,15 +7,30 @@ This folder contains **GUI Blocks and template graphics** for creating branded D
 ```
 assets/
 ├── svg/                    # Vector GUI Blocks
-│   └── Drupal GUI Block-01 through 05.svg
+│   └── Drupal GUI Block-01 through 08.svg
 └── png/
     ├── large/
     ├── medium/
-    └── small/
-        ├── Drupal GUI Block-01 through 05.png
-        ├── Product Logos.png
-        ├── Slide Deck Template Button.png
-        └── Video.png
+    ├── small/
+    │   ├── Drupal GUI Block-01 through 08.png
+    │   ├── Product Logos.png
+    │   ├── Slide Deck Template Button.png
+    │   └── Video.png
+    └── presentation/       # Presentation-ready GUI Block variants
+        ├── gui-block-filled-blue.png
+        ├── gui-block-filled-blue-wide.png
+        ├── gui-block-filled-red-navy.png
+        ├── gui-block-filled-yellow.png
+        ├── gui-block-frame-blue-drop-badge.png
+        ├── gui-block-frame-blue-shadow.png
+        ├── gui-block-frame-blue-small.png
+        ├── gui-block-frame-blue-yellow-navy.png
+        ├── gui-block-frame-lightblue-drupal-badge.png
+        ├── gui-block-frame-lightblue-wide-drupal-badge.png
+        ├── gui-block-frame-lightblue-wide-drupal-badge-alt.png
+        ├── gui-block-frame-purple.png
+        ├── gui-block-frame-red-shadow.png
+        └── navy-block-shadow-lines.png
 ```
 
 ## GUI Blocks

@@ -16,7 +16,9 @@ You help create on-brand Drupal designs, marketing materials, and visual content
 | CMS logo | `/logos/` |
 | GUI Blocks | `/assets/` |
 | Slide backgrounds | `/backgrounds/` |
-| Presentation assets | `/presentation-assets/` (66 PNGs) |
+| Photos | `/photos/` |
+| Client logos | `/client-logos/` |
+| Screenshots | `/screenshots/` |
 | Presentation template | `/templates/presentations/` |
 | Colors | `/colors/PALETTES.md` |
 | Gradients | `/gradients/` |
@@ -323,13 +325,15 @@ Claude Code's MCP PowerPoint tools cannot reliably produce professional-quality 
 
 ```
 /logos/                CMS Product Logos (svg/, png/)
-/graphics/             Primary Logos (svg/, png/)
-/assets/               GUI Blocks & Templates (8 blocks)
+/graphics/             Primary Drupal Logos (svg/, png/)
+/assets/               GUI Blocks & Templates (png/presentation/ for variants)
 /backgrounds/          Slide backgrounds (drop cutouts, gradients)
-/presentation-assets/  Pre-built presentation graphics (66 PNGs)
+/photos/               Stock photos and event photography
+/client-logos/         Logos of organizations using Drupal
+/screenshots/          UI screenshots for presentations
 /colors/               PALETTES.md
 /gradients/            6 gradient SVGs
-/patterns/             6 pattern SVGs
+/patterns/             Dynamic patterns (SVG and PNG)
 /fonts/                ZT Gatha, Noto Sans
 /templates/            Presentation templates (PPTX)
 ```

@@ -4,12 +4,22 @@ This folder contains **official dynamic patterns** for use in Drupal brand desig
 
 ## Available Patterns
 
+### SVG Patterns (Vector)
 - Drupal_Dynamic Patterns-01.svg
 - Drupal_Dynamic Patterns-02.svg
 - Drupal_Dynamic Patterns-03.svg
 - Drupal_Dynamic Patterns-04.svg
 - Drupal_Dynamic Patterns-05.svg
 - Drupal_Dynamic Patterns-06.svg
+
+### PNG Patterns (Raster)
+- pattern-diagonal-stripes-purple.png - Light purple diagonal stripes
+- pattern-wavy-lines-blue.png - Blue wavy line pattern
+- pattern-white-transparent.png - White transparent pattern (for dark backgrounds)
+- pattern-white-transparent-alt.png - White transparent variant
+- pattern-white-transparent-alt2.png - White transparent variant
+- pattern-white-transparent-alt3.png - White transparent variant
+- pattern-white-transparent-large.png - Large white transparent pattern
 
 ## About Dynamic Patterns
 

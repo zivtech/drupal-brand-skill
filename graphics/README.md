@@ -10,6 +10,14 @@ Primary Drupal logos in vector format for print and scalable web use
 ### `/png/` folder
 Primary Drupal logos in raster format (large, medium, small sizes) for digital applications
 
+### Root folder PNG files
+Additional logo variants for quick use:
+- drupal-logo-wordmark-blue.png - Full logo with wordmark
+- drupal-drop-icon-blue.png - Drop icon only (blue)
+- drupal-drop-icon-white.png - Drop icon only (white, for dark backgrounds)
+- drupal-logo-badge-blue.png - Square badge format
+- drupal-logo-badge-blue-alt.png - Square badge variant
+
 **Note**: For Drupal CMS product-specific logos, see `/logos/`.
 
 ## Usage Guidelines
