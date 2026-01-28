@@ -134,7 +134,8 @@ CONTENT_PATTERNS = {
 ORIENTATIONS = {
     'left': ['content_image_left', 'photo_text_left', 'stat_photo_left'],
     'right': ['content_image_right', 'photo_text_right', 'feature_white_bg'],
-    'center': ['statement_center', 'quote_centered', 'section_divider', 'closing_cta'],
+    'center': ['statement_center', 'quote_centered', 'section_divider', 'closing_cta',
+               'stats_dashboard', 'case_study_full'],  # Multi-zone layouts are centered
 }
 
 # Text capacity estimates per layout category
@@ -299,17 +300,33 @@ def detect_content_type(slide):
     # Check for FULL case study BEFORE bullet_list (more specific pattern)
     # Full case study has bullets + quote OR "why chosen" section
     has_bullets = bullet_count >= 2
-    has_quote = bool(re.search(r'["""].*["""]', combined)) or '"' in combined
+    # Check for quotes - including title starting with quote (common in case studies)
+    has_quote = (
+        bool(re.search(r'["""].*["""]', combined)) or
+        '"' in combined or
+        title.strip().startswith('"') or
+        title.strip().startswith('"')
+    )
     has_why_chosen = 'why' in combined and ('chosen' in combined or 'drupal' in combined)
 
     case_study_keywords = ['customer', 'client', 'case study', 'success story',
                           'testimonial', 'partner', 'rebuilt', 'transformed',
-                          'organization', 'implemented', 'content hub', 'replatform']
+                          'organization', 'implemented', 'content hub', 'replatform',
+                          'arsenal', 'premier league', 'health portal']  # Add specific org names
     is_case_study = any(kw in combined for kw in case_study_keywords)
 
     # Full case study: has bullets + quote OR "why chosen" section
+    # Also detect case studies that start with a quote (testimonial format)
     # These are complex layouts needing multiple text zones
+    # Quote chars: " (8220 left curly), " (8221 right curly), " (34 straight)
+    quote_chars = ['\u201c', '\u201d', '"', "'", '\u2018', '\u2019']
+    title_is_quote = any(title.strip().startswith(q) for q in quote_chars)
+
     if has_bullets and (has_quote or has_why_chosen):
+        return 'case_study_full'
+
+    # Title that's a quote + case study keywords = full case study
+    if title_is_quote and is_case_study:
         return 'case_study_full'
 
     # Regular case study (simpler layout)
@@ -425,6 +442,18 @@ class LayoutSelector:
                 for idx in SLIDE_CATALOG.get(cat, []):
                     available.append((cat, idx))
 
+        # PRIORITY: If the primary candidate (first in list) matches content_type exactly,
+        # and it's a specialized layout (stats_dashboard, case_study_full), use it
+        # These layouts are specifically designed for their content types
+        specialized_layouts = ['stats_dashboard', 'case_study_full']
+        if available and candidates and candidates[0] in specialized_layouts:
+            cat, idx = available[0]
+            if cat == candidates[0]:
+                for orient, cats in ORIENTATIONS.items():
+                    if cat in cats:
+                        self._record_selection(idx, orient)
+                        return idx, cat
+
         # Select based on orientation preference
         preferred_orientation = self.get_opposite_orientation()
 
@@ -452,6 +481,15 @@ class LayoutSelector:
 
     def _get_candidates(self, content_type, position):
         """Get candidate categories for content type and position."""
+
+        # PRIORITY: Specialized multi-zone layouts take precedence over position
+        # These content types have specific template requirements
+        if content_type == 'stats_dashboard':
+            return ['stats_dashboard', 'stat_outline_gui']  # Fallback if extended template not used
+
+        if content_type == 'case_study_full':
+            return ['case_study_full', 'content_image_right']  # Fallback
+
         # Opening slides
         if position == 'opening':
             if content_type == 'statistic':
@@ -467,14 +505,6 @@ class LayoutSelector:
             return ['section_divider', 'statement_center']
 
         # Content-based selection
-
-        # NEW: Stats dashboard (multiple stats)
-        if content_type == 'stats_dashboard':
-            return ['stats_dashboard', 'stat_outline_gui']  # Fallback if extended template not used
-
-        # NEW: Full case study (bullets + quote)
-        if content_type == 'case_study_full':
-            return ['case_study_full', 'content_image_right']  # Fallback
 
         if content_type == 'statistic':
             gui_color = self.rotate_gui_color()
@@ -1259,6 +1289,273 @@ def set_font_size(text_elem, size_hundredths):
 
 
 # ============================================================
+# MULTI-ZONE LAYOUT POPULATION
+# ============================================================
+
+def find_shape_by_name(root, name_pattern):
+    """Find a shape by its name (or partial match).
+
+    Args:
+        root: XML root element
+        name_pattern: Name to search for (case-insensitive partial match)
+
+    Returns:
+        Shape element or None
+    """
+    pattern = name_pattern.lower()
+    for shape in root.xpath('.//p:sp', namespaces=NSMAP):
+        nvSpPr = shape.find('.//p:nvSpPr', namespaces=NSMAP)
+        if nvSpPr is not None:
+            cNvPr = nvSpPr.find('p:cNvPr', namespaces=NSMAP)
+            if cNvPr is not None:
+                name = cNvPr.get('name', '').lower()
+                if pattern in name:
+                    return shape
+    return None
+
+
+def replace_text_in_named_shape(root, shape_name, new_text, font_size=None):
+    """Replace text in a shape identified by name.
+
+    Args:
+        root: XML root element
+        shape_name: Name of shape to find
+        new_text: Text to insert
+        font_size: Optional font size in hundredths of point
+
+    Returns:
+        True if text was replaced, False otherwise
+    """
+    shape = find_shape_by_name(root, shape_name)
+    if shape is None:
+        return False
+
+    text_runs = shape.xpath('.//a:t', namespaces=NSMAP)
+    if not text_runs:
+        return False
+
+    text_runs[0].text = new_text
+    if font_size:
+        set_font_size(text_runs[0], font_size)
+
+    # Clear subsequent text runs
+    for t in text_runs[1:]:
+        t.text = ""
+
+    return True
+
+
+def parse_stats_content(title, body):
+    """Parse content into stats dashboard zones.
+
+    Extracts statistics from content like:
+    "118k contributors | 46K+ developers | 1.4M users | 12% market share"
+    or multiline format with number followed by description.
+
+    Returns:
+        List of dicts with 'number' and 'label' keys
+    """
+    stats = []
+    combined = f"{title}\n{body}"
+
+    # Patterns that indicate a stat number
+    stat_patterns = [
+        r'^[\d,.$]+[%KMBkmb+]*$',     # 118k, 12%, $1.5M
+        r'^\d+[\d,.]*\s*[%KMBkmb+]',  # 1.4 Million, 46K+
+        r'^(Millions?|Billions?|Thousands?|Hundreds?)\b',  # Word numbers
+    ]
+
+    lines = combined.split('\n')
+    current_number = None
+    current_labels = []
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        # Check if this line looks like a stat number
+        is_number = False
+        for pattern in stat_patterns:
+            if re.match(pattern, line, re.IGNORECASE):
+                is_number = True
+                break
+
+        # Also check for lines starting with digits
+        if not is_number and re.match(r'^\d', line) and len(line) < 20:
+            is_number = True
+
+        if is_number:
+            # Save previous stat if exists
+            if current_number:
+                label = ' '.join(current_labels) if current_labels else ''
+                stats.append({'number': current_number, 'label': label})
+                current_labels = []
+            current_number = line
+        elif current_number:
+            # This is a label line for the current number
+            # Keep collecting labels until we hit another number
+            if len(line) < 50 and not any(c in line for c in '.!?'):
+                current_labels.append(line)
+            else:
+                # Long line - save stat and reset
+                label = ' '.join(current_labels) if current_labels else ''
+                stats.append({'number': current_number, 'label': label})
+                current_number = None
+                current_labels = []
+
+    # Handle trailing stat
+    if current_number:
+        label = ' '.join(current_labels) if current_labels else ''
+        stats.append({'number': current_number, 'label': label})
+
+    return stats[:6]  # Max 6 stats
+
+
+def parse_case_study_content(title, body):
+    """Parse content into case study zones.
+
+    Extracts:
+    - company_name: From title
+    - description: Opening paragraph(s)
+    - bullets: "Why Drupal" section bullets
+    - quote: Quoted text
+    - attribution: Quote attribution
+
+    Returns:
+        Dict with zone keys
+    """
+    zones = {
+        'company_name': title,
+        'description': '',
+        'bullets': '',
+        'quote': '',
+        'attribution': ''
+    }
+
+    lines = body.split('\n')
+    in_bullets = False
+    description_lines = []
+    bullet_lines = []
+
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+
+        # Check for quote (starts with quote mark or contains attribution)
+        if line.startswith('"') or line.startswith('"') or line.startswith("'"):
+            # Extract quote text
+            quote_text = line
+            # Check if attribution is on same line
+            if '—' in quote_text or ' - ' in quote_text:
+                parts = re.split(r'\s*[—-]\s*', quote_text, 1)
+                zones['quote'] = parts[0].strip(' ""\'"')
+                if len(parts) > 1:
+                    zones['attribution'] = '— ' + parts[1]
+            else:
+                zones['quote'] = quote_text.strip(' ""\'"')
+            continue
+
+        # Check for attribution line
+        if line.startswith('—') or line.startswith('- '):
+            zones['attribution'] = line
+            continue
+
+        # Check for "Why" section header
+        if 'why' in line.lower() and ('drupal' in line.lower() or 'chosen' in line.lower()):
+            in_bullets = True
+            continue
+
+        # Check for bullet points
+        if line.startswith('•') or line.startswith('-') or line.startswith('*'):
+            in_bullets = True
+            bullet_lines.append(line)
+            continue
+
+        # Otherwise it's description
+        if not in_bullets:
+            description_lines.append(line)
+        else:
+            # After bullets started, this might be more bullets without markers
+            if len(line) < 100:
+                bullet_lines.append('• ' + line)
+
+    zones['description'] = ' '.join(description_lines)
+    zones['bullets'] = '\n'.join(bullet_lines)
+
+    return zones
+
+
+def populate_stats_dashboard(slide_path, title, body):
+    """Populate a stats dashboard slide with parsed statistics.
+
+    Args:
+        slide_path: Path to slide XML file
+        title: Slide title
+        body: Body content containing statistics
+
+    Returns:
+        Modified ElementTree
+    """
+    tree = etree.parse(str(slide_path))
+    root = tree.getroot()
+
+    # Parse statistics from content
+    stats = parse_stats_content(title, body)
+
+    # Replace title
+    replace_text_in_placeholder(root, 'title', title, 3600)
+
+    # Populate each stat zone
+    for i, stat in enumerate(stats, 1):
+        number_name = f'Stat{i}_Number'
+        label_name = f'Stat{i}_Label'
+
+        replace_text_in_named_shape(root, number_name, stat['number'], 7200)  # 72pt
+        replace_text_in_named_shape(root, label_name, stat['label'], 1800)    # 18pt
+
+    return tree
+
+
+def populate_case_study_full(slide_path, title, body):
+    """Populate a case study slide with parsed content zones.
+
+    Args:
+        slide_path: Path to slide XML file
+        title: Company name
+        body: Full case study content
+
+    Returns:
+        Modified ElementTree
+    """
+    tree = etree.parse(str(slide_path))
+    root = tree.getroot()
+
+    # Parse case study content
+    zones = parse_case_study_content(title, body)
+
+    # Populate title (company name)
+    replace_text_in_placeholder(root, 'title', zones['company_name'], 3600)
+
+    # Populate description (body idx=1)
+    replace_text_in_placeholder(root, 'body', zones['description'], 1600, idx='1')
+
+    # Populate bullets (body idx=2)
+    replace_text_in_placeholder(root, 'body', zones['bullets'], 1400, idx='2')
+
+    # Populate quote and attribution (named shapes)
+    if zones['quote']:
+        quote_text = f'"{zones["quote"]}"'
+        replace_text_in_named_shape(root, 'Quote', quote_text, 2400)
+
+    if zones['attribution']:
+        replace_text_in_named_shape(root, 'Attribution', zones['attribution'], 1400)
+
+    return tree
+
+
+# ============================================================
 # IMAGE INSERTION
 # ============================================================
 
@@ -1455,16 +1752,26 @@ def migrate_presentation(slides, output_path, template_path=None, insert_images=
             capacity = TEXT_CAPACITY.get(category, TEXT_CAPACITY['default'])
             title_max, body_max, title_pt, body_pt = capacity
 
-            # Truncate text to fit capacity
-            new_title = slide['title'].replace('\n', ' ')[:title_max]
-            new_body = slide['body'].replace('\n', ' ')[:body_max]
+            # Use specialized population for multi-zone layouts
+            if content_type == 'stats_dashboard' and category == 'stats_dashboard':
+                # Stats dashboard has 6 stat zones - preserve newlines for parsing
+                tree = populate_stats_dashboard(dst_slide, slide['title'], slide['body'])
+                tree.write(str(dst_slide), xml_declaration=True, encoding='UTF-8', standalone=True)
+            elif content_type == 'case_study_full' and category == 'case_study_full':
+                # Case study has description, bullets, quote zones - preserve newlines
+                tree = populate_case_study_full(dst_slide, slide['title'], slide['body'])
+                tree.write(str(dst_slide), xml_declaration=True, encoding='UTF-8', standalone=True)
+            else:
+                # Standard two-zone layout (title + body)
+                new_title = slide['title'].replace('\n', ' ')[:title_max]
+                new_body = slide['body'].replace('\n', ' ')[:body_max]
 
-            # If body is too long, use smaller font
-            if len(slide['body']) > body_max:
-                body_pt = max(1200, body_pt - 200)  # Reduce by 2pt, minimum 12pt
+                # If body is too long, use smaller font
+                if len(slide['body']) > body_max:
+                    body_pt = max(1200, body_pt - 200)  # Reduce by 2pt, minimum 12pt
 
-            tree = replace_text_in_slide(dst_slide, new_title, new_body, title_pt, body_pt)
-            tree.write(str(dst_slide), xml_declaration=True, encoding='UTF-8', standalone=True)
+                tree = replace_text_in_slide(dst_slide, new_title, new_body, title_pt, body_pt)
+                tree.write(str(dst_slide), xml_declaration=True, encoding='UTF-8', standalone=True)
 
             # Insert image if available
             slide_images = slide.get('images', [])
@@ -1619,7 +1926,7 @@ def update_package_structure(output_dir, num_slides):
 def main():
     """Command-line interface."""
     if len(sys.argv) < 2:
-        print("Usage: python migrate.py <input_file> [output_file] [--no-images]")
+        print("Usage: python migrate.py <input_file> [output_file] [options]")
         print("")
         print("Supported inputs:")
         print("  - .pdf  (PDF - extracts text and images)")
@@ -1629,21 +1936,37 @@ def main():
         print("")
         print("Features:")
         print("  - Intelligent content type detection (stats, quotes, bullets, etc.)")
+        print("  - Multi-zone layout support (stats dashboard, case study)")
         print("  - Layout variety tracking (no consecutive repeats)")
         print("  - Image extraction and insertion (PDF/PPTX)")
-        print("  - Left/right orientation alternation")
         print("")
         print("Options:")
-        print("  --no-images    Skip image extraction/insertion")
+        print("  --no-images              Skip image extraction/insertion")
+        print("  --template <path.pptx>   Use custom template (default: drupal-brand-template.pptx)")
         print("")
         print("Examples:")
         print("  python migrate.py presentation.pdf output.pptx")
-        print("  python migrate.py content.md output.pptx")
+        print("  python migrate.py input.pdf output.pptx --template extended-template.pptx")
         sys.exit(1)
 
+    # Parse arguments
     input_file = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith('--') else "drupal-branded-output.pptx"
-    extract_images = '--no-images' not in sys.argv
+    output_file = "drupal-branded-output.pptx"
+    extract_images = True
+    template_path = None
+
+    # Simple argument parsing
+    i = 2
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        if arg == '--no-images':
+            extract_images = False
+        elif arg == '--template' and i + 1 < len(sys.argv):
+            template_path = sys.argv[i + 1]
+            i += 1
+        elif not arg.startswith('--'):
+            output_file = arg
+        i += 1
 
     print("=" * 60)
     print("Drupal Brand Presentation Migration")
@@ -1658,6 +1981,9 @@ def main():
         else:
             print("Image extraction: disabled")
 
+        if template_path:
+            print(f"Custom template: {template_path}")
+
         slides = detect_and_parse(input_file, image_output_dir=image_dir)
         print(f"Parsed {len(slides)} slides from input")
 
@@ -1666,7 +1992,7 @@ def main():
         if slides_with_images > 0:
             print(f"  {slides_with_images} slides have extractable images")
 
-        migrate_presentation(slides, output_file, insert_images=extract_images)
+        migrate_presentation(slides, output_file, template_path=template_path, insert_images=extract_images)
 
         # Cleanup temp image directory
         if image_dir and image_dir.exists():
