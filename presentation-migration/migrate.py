@@ -696,9 +696,24 @@ def parse_csv(csv_path):
     return slides
 
 
-def parse_pptx(pptx_path):
-    """Extract content from PPTX file."""
+def parse_pptx(pptx_path, image_output_dir=None):
+    """Extract content and images from PPTX file.
+
+    Args:
+        pptx_path: Path to PPTX file
+        image_output_dir: Directory to save extracted images (optional)
+
+    Returns:
+        List of slide dicts with 'number', 'title', 'body', 'images' keys
+    """
     slides = []
+
+    # Create image output directory if specified
+    if image_output_dir:
+        image_output_dir = Path(image_output_dir)
+        image_output_dir.mkdir(parents=True, exist_ok=True)
+
+    total_images_extracted = 0
 
     with tempfile.TemporaryDirectory() as tmpdir:
         work_dir = Path(tmpdir)
@@ -707,6 +722,7 @@ def parse_pptx(pptx_path):
             zf.extractall(work_dir)
 
         slides_dir = work_dir / 'ppt/slides'
+        media_dir = work_dir / 'ppt/media'
 
         # Get all slide files
         slide_files = sorted(
@@ -725,32 +741,80 @@ def parse_pptx(pptx_path):
                 if t.text:
                     texts.append(clean_text(t.text))
 
-            # Get layout from rels
+            # Get layout from rels and extract images
             layout = 'DEFAULT'
+            extracted_images = []
             rels_file = slides_dir / f'_rels/slide{num}.xml.rels'
+
             if rels_file.exists():
                 rels_tree = etree.parse(str(rels_file))
                 for rel in rels_tree.getroot():
                     target = rel.get('Target', '')
+                    rel_type = rel.get('Type', '').split('/')[-1]
+
                     if 'slideLayout' in target:
                         layout_num = re.search(r'slideLayout(\d+)', target)
                         if layout_num:
-                            # Map layout number to type (simplified)
                             layout = 'DEFAULT'
+
+                    # Extract images
+                    if rel_type == 'image' and image_output_dir:
+                        # Get source image path
+                        image_name = os.path.basename(target)
+                        source_path = media_dir / image_name
+
+                        if source_path.exists():
+                            try:
+                                # Get image dimensions
+                                import struct
+                                with open(source_path, 'rb') as f:
+                                    data = f.read(32)
+
+                                width, height = 0, 0
+                                ext = source_path.suffix.lower()
+
+                                # PNG dimensions
+                                if ext == '.png' and data[:8] == b'\x89PNG\r\n\x1a\n':
+                                    width = struct.unpack('>I', data[16:20])[0]
+                                    height = struct.unpack('>I', data[20:24])[0]
+                                # JPEG dimensions (approximate)
+                                elif ext in ['.jpg', '.jpeg']:
+                                    width, height = 800, 600  # Default estimate
+
+                                # Only copy images larger than 100x100
+                                if width >= 100 and height >= 100:
+                                    dest_filename = f"slide{num}_img{len(extracted_images)}{ext}"
+                                    dest_path = image_output_dir / dest_filename
+                                    shutil.copy2(source_path, dest_path)
+
+                                    extracted_images.append({
+                                        'path': str(dest_path),
+                                        'width': width,
+                                        'height': height,
+                                        'ext': ext[1:]  # Remove dot
+                                    })
+                                    total_images_extracted += 1
+                            except Exception:
+                                pass  # Skip images that can't be processed
 
             slide = {
                 'number': num,
                 'layout': layout,
                 'title': texts[0] if texts else '',
                 'body': '\n'.join(texts[1:5]) if len(texts) > 1 else '',
+                'images': extracted_images,
+                'image_count': len(extracted_images)
             }
             slides.append(slide)
+
+    if image_output_dir:
+        print(f"  Extracted {total_images_extracted} images to {image_output_dir}")
 
     return slides
 
 
-def parse_pdf(pdf_path):
-    """Extract content from PDF file.
+def parse_pdf(pdf_path, image_output_dir=None):
+    """Extract content and images from PDF file.
 
     LIMITATIONS:
     - Text embedded in images (decorative text, logos) will NOT be extracted
@@ -762,6 +826,10 @@ def parse_pdf(pdf_path):
     - Use PDFs exported from PowerPoint (text preserved as text)
     - Avoid PDFs that are scanned images
     - Review output and manually adjust content as needed
+
+    Args:
+        pdf_path: Path to PDF file
+        image_output_dir: Directory to save extracted images (optional)
 
     Returns:
         List of slide dicts with 'number', 'title', 'body', 'images' keys
@@ -778,6 +846,13 @@ def parse_pdf(pdf_path):
     doc = fitz.open(pdf_path)
 
     print(f"  PDF has {len(doc)} pages")
+
+    # Create image output directory if specified
+    if image_output_dir:
+        image_output_dir = Path(image_output_dir)
+        image_output_dir.mkdir(parents=True, exist_ok=True)
+
+    total_images_extracted = 0
 
     for page_num, page in enumerate(doc, 1):
         # Extract text
@@ -798,9 +873,41 @@ def parse_pdf(pdf_path):
 
         body = '\n'.join(body_lines)
 
-        # Extract images info (for later processing)
+        # Extract images
         images = page.get_images()
         image_count = len(images)
+        extracted_images = []
+
+        if image_output_dir and images:
+            for img_idx, img in enumerate(images):
+                xref = img[0]  # Image XREF
+                try:
+                    base_image = doc.extract_image(xref)
+                    if base_image:
+                        image_bytes = base_image["image"]
+                        image_ext = base_image["ext"]
+
+                        # Filter out tiny images (likely icons/bullets)
+                        width = base_image.get("width", 0)
+                        height = base_image.get("height", 0)
+
+                        # Only save images larger than 100x100
+                        if width >= 100 and height >= 100:
+                            image_filename = f"page{page_num}_img{img_idx}.{image_ext}"
+                            image_path = image_output_dir / image_filename
+
+                            with open(image_path, "wb") as img_file:
+                                img_file.write(image_bytes)
+
+                            extracted_images.append({
+                                'path': str(image_path),
+                                'width': width,
+                                'height': height,
+                                'ext': image_ext
+                            })
+                            total_images_extracted += 1
+                except Exception as e:
+                    pass  # Skip images that can't be extracted
 
         # Track extraction quality
         text_chars = len(text)
@@ -812,6 +919,7 @@ def parse_pdf(pdf_path):
             'title': clean_text(title),
             'body': clean_text(body),
             'image_count': image_count,
+            'images': extracted_images,  # List of extracted image info
             '_extraction_notes': []
         }
 
@@ -845,11 +953,22 @@ def parse_pdf(pdf_path):
     else:
         print(f"  All {len(slides)} pages extracted successfully.")
 
+    if image_output_dir:
+        print(f"  Extracted {total_images_extracted} images to {image_output_dir}")
+
     return slides
 
 
-def detect_and_parse(input_path):
-    """Detect input format and parse accordingly."""
+def detect_and_parse(input_path, image_output_dir=None):
+    """Detect input format and parse accordingly.
+
+    Args:
+        input_path: Path to input file (PDF, PPTX, MD, or CSV)
+        image_output_dir: Directory to save extracted images (optional)
+
+    Returns:
+        List of slide dicts with content and image info
+    """
     path = Path(input_path)
     suffix = path.suffix.lower()
 
@@ -861,10 +980,10 @@ def detect_and_parse(input_path):
         return parse_csv(path)
     elif suffix in ['.pptx', '.ppt']:
         print(f"Detected PPTX input: {path.name}")
-        return parse_pptx(path)
+        return parse_pptx(path, image_output_dir)
     elif suffix == '.pdf':
         print(f"Detected PDF input: {path.name}")
-        return parse_pdf(path)
+        return parse_pdf(path, image_output_dir)
     else:
         raise ValueError(f"Unsupported input format: {suffix}")
 
@@ -1139,8 +1258,134 @@ def set_font_size(text_elem, size_hundredths):
         rPr.set('sz', str(size_hundredths))
 
 
-def migrate_presentation(slides, output_path, template_path=None):
-    """Create migrated presentation from slides data with intelligent layout selection."""
+# ============================================================
+# IMAGE INSERTION
+# ============================================================
+
+def find_largest_picture(root):
+    """Find the largest p:pic element in a slide (likely the content image area).
+
+    Returns:
+        Tuple of (pic_element, rId, area) or (None, None, 0)
+    """
+    pics = root.xpath('.//p:pic', namespaces=NSMAP)
+    largest = None
+    largest_rid = None
+    largest_area = 0
+
+    for pic in pics:
+        spPr = pic.find('p:spPr', namespaces=NSMAP)
+        if spPr is None:
+            continue
+
+        xfrm = spPr.find('a:xfrm', namespaces=NSMAP)
+        if xfrm is None:
+            continue
+
+        ext = xfrm.find('a:ext', namespaces=NSMAP)
+        if ext is None:
+            continue
+
+        cx = int(ext.get('cx', 0))
+        cy = int(ext.get('cy', 0))
+        area = cx * cy
+
+        if area > largest_area:
+            largest_area = area
+            largest = pic
+
+            # Get the relationship ID
+            blip = pic.find('.//a:blip', namespaces=NSMAP)
+            if blip is not None:
+                largest_rid = blip.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
+
+    return largest, largest_rid, largest_area
+
+
+def insert_image_in_slide(slide_xml_path, slide_rels_path, image_path, media_dir, next_rid):
+    """Insert an image into a slide by replacing the largest existing picture.
+
+    Args:
+        slide_xml_path: Path to slide XML file
+        slide_rels_path: Path to slide relationships file
+        image_path: Path to source image file
+        media_dir: Directory where media files are stored in the PPTX
+        next_rid: Next available relationship ID (e.g., 'rId10')
+
+    Returns:
+        True if image was inserted, False otherwise
+    """
+    tree = etree.parse(str(slide_xml_path))
+    root = tree.getroot()
+
+    # Find the largest picture element (likely the content image area)
+    pic, old_rid, area = find_largest_picture(root)
+
+    if pic is None:
+        return False
+
+    # Copy image to media directory
+    image_path = Path(image_path)
+    new_image_name = f"image_user_{next_rid}.{image_path.suffix.lstrip('.')}"
+    dest_path = media_dir / new_image_name
+    shutil.copy2(image_path, dest_path)
+
+    # Update the blip reference in the slide XML
+    blip = pic.find('.//a:blip', namespaces=NSMAP)
+    if blip is not None:
+        blip.set('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed', next_rid)
+
+    # Update the relationships file
+    rels_tree = etree.parse(str(slide_rels_path))
+    rels_root = rels_tree.getroot()
+
+    # Add new relationship
+    new_rel = etree.SubElement(rels_root, 'Relationship')
+    new_rel.set('Id', next_rid)
+    new_rel.set('Type', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image')
+    new_rel.set('Target', f'../media/{new_image_name}')
+
+    # Save both files
+    tree.write(str(slide_xml_path), xml_declaration=True, encoding='UTF-8', standalone=True)
+    rels_tree.write(str(slide_rels_path), xml_declaration=True, encoding='UTF-8', standalone=True)
+
+    return True
+
+
+def get_next_rid(rels_path):
+    """Get the next available relationship ID from a rels file.
+
+    Returns:
+        String like 'rId10'
+    """
+    try:
+        tree = etree.parse(str(rels_path))
+        root = tree.getroot()
+
+        max_id = 0
+        for rel in root:
+            rid = rel.get('Id', '')
+            if rid.startswith('rId'):
+                try:
+                    num = int(rid[3:])
+                    max_id = max(max_id, num)
+                except ValueError:
+                    pass
+
+        return f'rId{max_id + 1}'
+    except Exception:
+        return 'rId100'  # Safe fallback
+
+
+def migrate_presentation(slides, output_path, template_path=None, insert_images=True):
+    """Create migrated presentation from slides data with intelligent layout selection.
+
+    Args:
+        slides: List of slide dicts with 'title', 'body', and optionally 'images'
+        output_path: Path for output PPTX file
+        template_path: Path to template PPTX (optional, uses default if not specified)
+        insert_images: Whether to insert extracted images into slides (default: True)
+    """
 
     if template_path is None:
         template_path = TEMPLATE_PATH
@@ -1220,6 +1465,21 @@ def migrate_presentation(slides, output_path, template_path=None):
 
             tree = replace_text_in_slide(dst_slide, new_title, new_body, title_pt, body_pt)
             tree.write(str(dst_slide), xml_declaration=True, encoding='UTF-8', standalone=True)
+
+            # Insert image if available
+            slide_images = slide.get('images', [])
+            if insert_images and slide_images:
+                # Use the largest extracted image
+                largest_image = max(slide_images, key=lambda x: x.get('width', 0) * x.get('height', 0))
+                media_dir = output_dir / 'ppt/media'
+
+                if dst_rels.exists():
+                    next_rid = get_next_rid(dst_rels)
+                    image_inserted = insert_image_in_slide(
+                        dst_slide, dst_rels, largest_image['path'], media_dir, next_rid
+                    )
+                    if image_inserted:
+                        layout_assignments[-1]['image_inserted'] = True
 
             if new_num % 20 == 0:
                 print(f"  Processed {new_num}/{total_slides} slides...")
@@ -1359,35 +1619,58 @@ def update_package_structure(output_dir, num_slides):
 def main():
     """Command-line interface."""
     if len(sys.argv) < 2:
-        print("Usage: python migrate.py <input_file> [output_file]")
+        print("Usage: python migrate.py <input_file> [output_file] [--no-images]")
         print("")
         print("Supported inputs:")
-        print("  - .md  (Markdown with slide structure)")
-        print("  - .csv (Spreadsheet with slide_number, layout, title, body)")
-        print("  - .pptx (PowerPoint - auto-extracts content)")
+        print("  - .pdf  (PDF - extracts text and images)")
+        print("  - .pptx (PowerPoint - auto-extracts content and images)")
+        print("  - .md   (Markdown with slide structure)")
+        print("  - .csv  (Spreadsheet with slide_number, layout, title, body)")
         print("")
         print("Features:")
         print("  - Intelligent content type detection (stats, quotes, bullets, etc.)")
         print("  - Layout variety tracking (no consecutive repeats)")
+        print("  - Image extraction and insertion (PDF/PPTX)")
         print("  - Left/right orientation alternation")
-        print("  - GUI block color rotation")
         print("")
-        print("Example:")
+        print("Options:")
+        print("  --no-images    Skip image extraction/insertion")
+        print("")
+        print("Examples:")
+        print("  python migrate.py presentation.pdf output.pptx")
         print("  python migrate.py content.md output.pptx")
         sys.exit(1)
 
     input_file = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv) > 2 else "drupal-branded-output.pptx"
+    output_file = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith('--') else "drupal-branded-output.pptx"
+    extract_images = '--no-images' not in sys.argv
 
     print("=" * 60)
     print("Drupal Brand Presentation Migration")
     print("=" * 60)
 
     try:
-        slides = detect_and_parse(input_file)
+        # Create temp directory for extracted images
+        image_dir = None
+        if extract_images:
+            image_dir = Path(tempfile.mkdtemp(prefix='drupal_migrate_images_'))
+            print(f"Image extraction: enabled (temp: {image_dir})")
+        else:
+            print("Image extraction: disabled")
+
+        slides = detect_and_parse(input_file, image_output_dir=image_dir)
         print(f"Parsed {len(slides)} slides from input")
 
-        migrate_presentation(slides, output_file)
+        # Count slides with images
+        slides_with_images = sum(1 for s in slides if s.get('images'))
+        if slides_with_images > 0:
+            print(f"  {slides_with_images} slides have extractable images")
+
+        migrate_presentation(slides, output_file, insert_images=extract_images)
+
+        # Cleanup temp image directory
+        if image_dir and image_dir.exists():
+            shutil.rmtree(image_dir)
 
     except Exception as e:
         print(f"\n Error: {e}")

@@ -7,11 +7,14 @@ Convert presentations from PDF, PPTX, Markdown, or CSV into brand-compliant Drup
 ```bash
 cd presentation-migration
 
-# Migrate from PDF
+# Migrate from PDF (with automatic image extraction)
 python3 migrate.py input.pdf output.pptx
 
 # Migrate from PPTX
 python3 migrate.py source.pptx output.pptx
+
+# Skip image extraction (faster, smaller output)
+python3 migrate.py input.pdf output.pptx --no-images
 
 # With extended template (for stats dashboards, case studies)
 python3 migrate.py input.pdf output.pptx --template ../templates/presentations/drupal-brand-template-extended.pptx
@@ -35,6 +38,7 @@ python3 migrate.py input.pdf output.pptx --template ../templates/presentations/d
 - **Template selection**: Appropriate Drupal template slide chosen for each content type
 - **Layout variety**: No consecutive identical layouts
 - **Font scaling**: Text sized to fit placeholders
+- **Image extraction & insertion**: Images from PDF/PPTX are extracted and inserted into output slides
 
 ### What Requires Manual Work
 
@@ -43,7 +47,7 @@ python3 migrate.py input.pdf output.pptx --template ../templates/presentations/d
 | **Text in images** | PyMuPDF can't read text embedded in graphics | Copy from original |
 | **Logo grids** | Logos are images, not text | Note the slide, add logos manually |
 | **Complex tables** | Structure gets flattened | Recreate in PowerPoint |
-| **Image placement** | Image reinsertion not implemented yet | Export from source, insert manually |
+| **Some image placement** | Only slides with existing picture placeholders get images | Insert manually for text-only layouts |
 | **Font cleanup** | Some hard-coded fonts persist | Run `analyze_deck.py`, bulk replace |
 
 ---
@@ -77,6 +81,33 @@ Page 1: WARNING: Only 30 chars extracted but 3 images found.
 ```
 
 These pages need manual attention after migration.
+
+---
+
+## Image Pipeline
+
+### How It Works
+1. **Extraction**: Images are extracted from PDF/PPTX source files
+2. **Filtering**: Small images (<100x100) are skipped (icons, bullets)
+3. **Selection**: The largest image per slide is selected for insertion
+4. **Insertion**: Image replaces the largest picture element in the template slide
+
+### What Gets Inserted
+- Hero/banner images
+- Photo backgrounds
+- Large screenshots
+
+### What Doesn't Get Inserted
+- Logo grids (too many small images)
+- Slides without picture placeholders (text-only layouts like section dividers)
+- Decorative template images are preserved
+
+### Disabling Image Extraction
+
+If you prefer to add images manually:
+```bash
+python3 migrate.py input.pdf output.pptx --no-images
+```
 
 ---
 
