@@ -305,6 +305,34 @@ Claude Code's MCP PowerPoint tools cannot reliably produce professional-quality 
 - Brand fonts and colors documented above
 - Templates in `/assets/png/`
 
+### Testing Presentation Output
+
+After creating or modifying a presentation, analyze it for brand compliance issues and generate a custom fix checklist for the user.
+
+#### Analysis Process
+
+1. **Run the analysis script** (`/templates/presentations/analyze_deck.py`) on the PPTX file
+2. **Identify specific issues** found in the deck (hard-coded fonts, off-brand colors, etc.)
+3. **Generate a custom checklist** listing:
+   - Which slides need attention
+   - What specific fonts need replacement (and what to replace them with)
+   - What specific colors are off-brand
+   - Priority order (high/medium/low)
+
+#### What the Analysis Detects
+
+- **Hard-coded fonts**: Theme updates only change font *definitions*, not text with explicitly set fonts. The script identifies which non-brand fonts are present.
+- **Off-brand colors**: Elements using RGB values outside the Drupal palette.
+
+#### Deliverable
+
+Provide the user with a **specific, actionable checklist** based on analysis results, including:
+- Exact font replacements needed (e.g., "Replace Ubuntu with Noto Sans")
+- Slide numbers requiring manual review
+- Step-by-step instructions for bulk fixes in PowerPoint/Google Slides
+
+See `/templates/presentations/BRAND_COMPLIANCE_CHECKLIST.md` for the checklist template structure.
+
 ### 3D/Environmental
 - Patterns work in 2D and 3D
 - Colors translate to physical materials

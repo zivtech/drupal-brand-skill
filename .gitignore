@@ -1,2 +1,21 @@
 .DS_Store
 SKILL.md
+
+# Test outputs (large PPTX files)
+presentation-migration/test-output/
+presentation-migration/test-file/
+brand-compliance/test-file/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary files
+~$*.pptx
+*.tmp
+
+# Playwright MCP
+.playwright-mcp/
+
+# Temporary logs
+migration-journey-log.md

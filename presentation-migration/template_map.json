@@ -1,0 +1,74 @@
+{
+  "version": "1.0",
+  "description": "Maps source slide layouts to Drupal brand template slides",
+  "template_file": "../templates/presentations/drupal-brand-template.pptx",
+  "layouts": {
+    "TITLE": {
+      "template_slide": 1,
+      "description": "Title slide with gradient background",
+      "placeholders": ["title", "subtitle"]
+    },
+    "TITLE_1": {
+      "template_slide": 34,
+      "description": "Big centered statement",
+      "placeholders": ["title"]
+    },
+    "SECTION_HEADER": {
+      "template_slide": 4,
+      "description": "Photo vertical - dramatic impact",
+      "placeholders": ["title"]
+    },
+    "SECTION_HEADER_1": {
+      "template_slide": 4,
+      "description": "Photo vertical - dramatic impact",
+      "placeholders": ["title"]
+    },
+    "SECTION_HEADER_2": {
+      "template_slide": 4,
+      "description": "Photo vertical - dramatic impact",
+      "placeholders": ["title", "subtitle"]
+    },
+    "TITLE_AND_BODY": {
+      "template_slide": 3,
+      "description": "Content with image frame (GUI block)",
+      "placeholders": ["title", "body"]
+    },
+    "ONE_COLUMN_TEXT_1_1": {
+      "template_slide": 10,
+      "description": "Feature/benefit with imagery",
+      "placeholders": ["title", "body"]
+    },
+    "QUOTE": {
+      "template_slide": 13,
+      "description": "Testimonial/quote layout",
+      "placeholders": ["quote_text", "attribution"]
+    },
+    "STATS": {
+      "template_slide": 11,
+      "description": "Big number/statistic",
+      "placeholders": ["number", "description"]
+    },
+    "BLANK": {
+      "template_slide": 28,
+      "description": "Blank with Drupal branding",
+      "placeholders": []
+    },
+    "DEFAULT": {
+      "template_slide": 3,
+      "description": "Default fallback layout",
+      "placeholders": ["title", "body"]
+    }
+  },
+  "brand_colors": {
+    "drupal_blue": "#009CDE",
+    "drupal_navy": "#12285F",
+    "drupal_yellow": "#FFC423",
+    "drupal_red": "#F46351",
+    "drupal_green": "#397618",
+    "drupal_purple": "#CCBAF4"
+  },
+  "fonts": {
+    "heading": "Noto Sans",
+    "body": "Noto Sans"
+  }
+}
