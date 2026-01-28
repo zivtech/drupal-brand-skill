@@ -94,6 +94,11 @@ SLIDE_CATALOG = {
     # Blank/flexible templates
     'blank_title_image': [27],      # Title left, image right
     'blank_full_image': [28],       # Full-bleed image right
+
+    # NEW: Extended template slides (slides 49-50)
+    # Use drupal-brand-template-extended.pptx for these
+    'stats_dashboard': [49],        # 6-zone stats layout
+    'case_study_full': [50],        # Description + bullets + quote
 }
 
 # Content type detection patterns
@@ -193,6 +198,10 @@ TEXT_CAPACITY = {
 
     # Default
     'default': (150, 500, 2400, 1400),
+
+    # NEW: Extended template slides
+    'stats_dashboard': (50, 300, 7200, 1800),   # Large stat numbers + descriptions
+    'case_study_full': (100, 600, 2400, 1400),  # Company name + full description + bullets
 }
 
 NSMAP = {
@@ -220,6 +229,23 @@ def detect_content_type(slide):
     body = slide.get('body', '').strip()
     combined = f"{title}\n{body}".lower()
     slide_num = slide.get('number', 0)
+
+    # Check for MULTIPLE statistics (stats dashboard - 4+ stat-like values)
+    # Patterns for stat-like numbers
+    stat_number_patterns = [
+        r'\b\d+%',                   # Percentages
+        r'\b\d+[KMB]\+?\b',         # K/M/B suffixes (like 46K+, 1.4M)
+        r'\b\d{2,}k\b',             # lowercase k (like 118k)
+        r'\b\$[\d,]+',              # Dollar amounts
+        r'\b\d+x\b',                # Multipliers
+    ]
+    stat_count = 0
+    for pattern in stat_number_patterns:
+        stat_count += len(re.findall(pattern, combined, re.IGNORECASE))
+
+    # If 4+ different stats found, use stats_dashboard layout
+    if stat_count >= 4:
+        return 'stats_dashboard'
 
     # Check for statistics (numbers, percentages) in title OR body
     stat_patterns_title = [
@@ -267,17 +293,32 @@ def detect_content_type(slide):
         if re.search(pattern, combined):
             return 'comparison'
 
-    # Check for bullet lists (more than 2 bullets)
+    # Count bullets for subsequent checks
     bullet_count = len(re.findall(r'^\s*[-•▪]', body, re.MULTILINE))
-    if bullet_count >= 3:
-        return 'bullet_list'
 
-    # Testimonial/case study indicators (check before section_header)
+    # Check for FULL case study BEFORE bullet_list (more specific pattern)
+    # Full case study has bullets + quote OR "why chosen" section
+    has_bullets = bullet_count >= 2
+    has_quote = bool(re.search(r'["""].*["""]', combined)) or '"' in combined
+    has_why_chosen = 'why' in combined and ('chosen' in combined or 'drupal' in combined)
+
     case_study_keywords = ['customer', 'client', 'case study', 'success story',
                           'testimonial', 'partner', 'rebuilt', 'transformed',
-                          'organization']
-    if any(kw in combined for kw in case_study_keywords):
+                          'organization', 'implemented', 'content hub', 'replatform']
+    is_case_study = any(kw in combined for kw in case_study_keywords)
+
+    # Full case study: has bullets + quote OR "why chosen" section
+    # These are complex layouts needing multiple text zones
+    if has_bullets and (has_quote or has_why_chosen):
+        return 'case_study_full'
+
+    # Regular case study (simpler layout)
+    if is_case_study:
         return 'case_study'
+
+    # Generic bullet lists (only if not a case study)
+    if bullet_count >= 3:
+        return 'bullet_list'
 
     # "How X did Y" patterns (case studies)
     how_patterns = [
@@ -426,6 +467,15 @@ class LayoutSelector:
             return ['section_divider', 'statement_center']
 
         # Content-based selection
+
+        # NEW: Stats dashboard (multiple stats)
+        if content_type == 'stats_dashboard':
+            return ['stats_dashboard', 'stat_outline_gui']  # Fallback if extended template not used
+
+        # NEW: Full case study (bullets + quote)
+        if content_type == 'case_study_full':
+            return ['case_study_full', 'content_image_right']  # Fallback
+
         if content_type == 'statistic':
             gui_color = self.rotate_gui_color()
             if gui_color == 'coral':
