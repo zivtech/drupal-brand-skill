@@ -1,140 +1,302 @@
 # Drupal Brand Presentation Migration
 
-Migrate any presentation to the official Drupal brand template with full visual verification.
+Convert presentations from PDF, PPTX, Markdown, or CSV into brand-compliant Drupal presentations.
 
 ## Quick Start
 
-### 1. Extract Content from Source
-
 ```bash
-python extract_content.py source-presentation.pptx
+cd presentation-migration
+
+# Migrate from PDF
+python3 migrate.py input.pdf output.pptx
+
+# Migrate from PPTX
+python3 migrate.py source.pptx output.pptx
+
+# With extended template (for stats dashboards, case studies)
+python3 migrate.py input.pdf output.pptx --template ../templates/presentations/drupal-brand-template-extended.pptx
 ```
 
-Outputs:
-- `source-presentation-catalog.md` - Text content by slide
-- `source-presentation-images/` - Extracted images
+## Supported Input Formats
 
-### 2. Build New Deck
+| Format | Best For | Limitations |
+|--------|----------|-------------|
+| **PDF** | Existing presentations exported as PDF | Text in images not extracted |
+| **PPTX** | Source PowerPoint files | Layout info may be lost |
+| **Markdown** | Writing new content from scratch | Requires specific format |
+| **CSV** | Bulk slide data from spreadsheets | Simple title/body only |
 
-```bash
-python migrate.py --input content-catalog.md --output new-deck.pptx
+---
+
+## What You Need to Know Before Starting
+
+### Automatic Features
+- **Content type detection**: Stats, quotes, bullets, case studies auto-detected
+- **Template selection**: Appropriate Drupal template slide chosen for each content type
+- **Layout variety**: No consecutive identical layouts
+- **Font scaling**: Text sized to fit placeholders
+
+### What Requires Manual Work
+
+| Task | Why It's Manual | What to Do |
+|------|-----------------|------------|
+| **Text in images** | PyMuPDF can't read text embedded in graphics | Copy from original |
+| **Logo grids** | Logos are images, not text | Note the slide, add logos manually |
+| **Complex tables** | Structure gets flattened | Recreate in PowerPoint |
+| **Image placement** | Image reinsertion not implemented yet | Export from source, insert manually |
+| **Font cleanup** | Some hard-coded fonts persist | Run `analyze_deck.py`, bulk replace |
+
+---
+
+## PDF Input: Extraction Details
+
+### What Gets Extracted Successfully
+- Body text (paragraphs, bullets)
+- Headings and titles
+- Text in standard fonts
+- Page structure/order
+
+### What Does NOT Get Extracted
+
+| Content Type | Why Not | How to Handle |
+|--------------|---------|---------------|
+| Text in images | PyMuPDF extracts text layers only | Open original, copy text manually |
+| Decorative/styled titles | Often rendered as graphics | Manually type the title |
+| Logo grids (partner slides) | Logos are images without alt text | Note slide purpose, add logos in PowerPoint |
+| Tables | Structure not preserved | Recreate table in output |
+| Charts/graphs | Rasterized to images | Screenshot and place manually |
+| Infographic text | Usually embedded in graphic | Type out the statistics/labels |
+
+### Recognizing Extraction Issues
+
+When you run the migration, watch for warnings:
+
+```
+Page 1: WARNING: Only 30 chars extracted but 3 images found.
+        Text may be embedded in images.
 ```
 
-### 3. Test via PDF
+These pages need manual attention after migration.
+
+---
+
+## Step-by-Step Workflow
+
+### 1. Prepare Your Input
+
+**For PDF input:**
+- Use "Save As PDF" or "Export to PDF" (NOT "Print to PDF" which rasterizes text)
+- Best results from PowerPoint-exported PDFs
+
+**For new content:**
+- Use Markdown format (see examples below)
+
+### 2. Run the Migration
 
 ```bash
-# Convert to PDF
-soffice --headless --convert-to pdf new-deck.pptx --outdir .
-
-# For large decks, split into parts (Claude has PDF size limits)
-pdftk new-deck.pdf cat 1-20 output part1.pdf
-pdftk new-deck.pdf cat 21-40 output part2.pdf
+python3 migrate.py your-deck.pdf output.pptx
 ```
 
-### 4. Review with Claude
+### 3. Review the Extraction Summary
 
-Ask Claude to read each PDF and check for issues:
-- Text overflow
-- Wrong fonts
+```
+PDF has 13 pages
+
+Extraction Summary:
+  Page 1: WARNING: Only 30 chars extracted but 3 images found.
+  Page 8: WARNING: Only 44 chars extracted but 17 images found.
+
+2 pages may need manual review.
+
+Content Type Detection:
+Page  1: statement            | Promote Drupal Pitch Deck
+Page  7: stats_dashboard      | Millions
+Page 11: case_study           | "Now that the huge task of...
+```
+
+### 4. Open Output and Review
+
+In PowerPoint/Google Slides, check each slide:
+- [ ] All text visible (not cut off)
+- [ ] Correct template layout chosen
+- [ ] Flagged slides have content added manually
+
+### 5. Run Brand Compliance Check
+
+```bash
+python3 ../templates/presentations/analyze_deck.py output.pptx
+```
+
+This identifies:
+- Non-brand fonts needing replacement
 - Off-brand colors
-- Alignment problems
 
-### 5. Fix Issues
+### 6. Apply Manual Fixes
 
-Claude generates a checklist. Apply fixes in PowerPoint:
-- Bulk font replacement: Home → Replace → Replace Fonts
-- Manual fixes for individual slides
+**For missing text (from images):**
+1. Open original PDF side-by-side
+2. Copy text manually
+3. Paste into output slide
 
-### 6. Re-verify
+**For wrong layout:**
+1. Right-click slide → "Layout"
+2. Choose different template
+3. Adjust text in placeholders
 
-Convert to PDF again and confirm all issues resolved.
+**For bulk font replacement:**
+1. In PowerPoint: Home → Replace → Replace Fonts
+2. Replace detected non-brand fonts with Noto Sans
 
 ---
 
-## Workflow Diagram
+## Content Type Detection
+
+The tool automatically detects these content types and selects appropriate templates:
+
+| Type | Detection Pattern | Template Style |
+|------|-------------------|----------------|
+| `stats_dashboard` | 4+ statistics (%, K, M, $) | Multi-stat layout |
+| `statistic` | Single prominent number | Large stat + body |
+| `quote` | Starts with " or has — attribution | Quote slide |
+| `case_study` | Customer name + transformation story | Case study layout |
+| `case_study_full` | Bullets + quote together | Extended template (slide 50) |
+| `bullet_list` | 3+ bullet points | Feature slide with bullets |
+| `section_header` | Question or "What is..." format | Section divider |
+| `numbered_step` | "Step 1", "Phase 2", etc. | Numbered sequence |
+
+---
+
+## Input Format Examples
+
+### Markdown Format
+
+```markdown
+## Slide 1
+
+**Title:** Welcome to Drupal
+**Body:**
+The flexible, powerful CMS for ambitious organizations.
+
+---
+
+## Slide 2
+
+**Title:** 72%
+**Body:**
+of enterprise organizations choose Drupal for complex content needs
+
+- Flexible content modeling
+- Enterprise security
+- Scalable architecture
+
+---
+```
+
+### CSV Format
+
+```csv
+slide_number,title,body
+1,Welcome to Drupal,"The flexible, powerful CMS"
+2,72%,"of enterprise organizations choose Drupal"
+```
+
+---
+
+## File Structure
 
 ```
-Source PPTX → Extract Content → Build Deck → PDF Test → Fix → Re-verify → Done
+presentation-migration/
+├── migrate.py              # Main migration tool
+├── test_migrate.py         # Test suite (14 tests)
+├── README.md               # This file
+├── add_template_slides.py  # Creates extended template
+├── TEMPLATE-ADDITIONS-SPEC.md  # Spec for new layouts
+├── test-output/            # Test artifacts (gitignored)
+└── test-file/              # Test inputs (gitignored)
+
+templates/presentations/
+├── drupal-brand-template.pptx           # Standard (48 slides)
+├── drupal-brand-template-extended.pptx  # With stats/case study (50 slides)
+├── analyze_deck.py                      # Brand compliance checker
+└── BRAND_COMPLIANCE_CHECKLIST.md        # Fix instructions
 ```
 
 ---
 
-## Files
+## Troubleshooting
 
-| File | Purpose |
-|------|---------|
-| `SKILL.md` | Complete documentation |
-| `SLIDE-CATALOG.md` | All 48 template slides with details |
-| `migrate.py` | Migration script |
-| `extract_content.py` | Content extraction |
-| `template_map.json` | Layout mapping |
+### "No text extracted" for a slide
 
-## Template
+The slide likely has text as part of an image. Common for:
+- Title slides with stylized text
+- Hero images with overlaid text
+- Infographics
 
-Location: `/templates/presentations/drupal-brand-template.pptx`
+**Solution:** Open the original and manually type the text.
 
-[Google Slides Version](https://docs.google.com/presentation/d/1bJ1GMZWMyeFWBPN9u49chepN7fhuGI4GJVt-DEw-S68/edit)
+### Wrong content type detected
 
----
+The detection uses heuristic patterns. If it guesses wrong:
+1. Change the slide layout manually in PowerPoint
+2. Or pre-edit input to add detection hints (add "%" to stats, quotes around testimonials)
 
-## Testing Notes
+### Fonts look wrong in output
 
-**PDF Size Limits**: Claude cannot read very large PDFs in one pass. For decks over 30-40 slides, split into smaller PDFs:
+Template slides have placeholder fonts that may not apply to migrated text.
+
+**Solution:** Run `analyze_deck.py` and follow the bulk replacement instructions.
+
+### PyMuPDF not installed
 
 ```bash
-# Split into 20-page chunks
-pdftk presentation.pdf cat 1-20 output part1.pdf
-pdftk presentation.pdf cat 21-40 output part2.pdf
-pdftk presentation.pdf cat 41-60 output part3.pdf
+pip install PyMuPDF
+# Or with specific Python:
+/Library/Frameworks/Python.framework/Versions/3.13/bin/pip3 install PyMuPDF
 ```
 
-**Checklist Output**: After review, Claude generates a todo list for the content author with:
-- Slide numbers needing fixes
-- Specific issues (font, color, overflow)
-- Priority (High/Medium)
-- Recommended fix
+---
 
-See `SKILL.md` for complete testing workflow.
+## Requirements
+
+- Python 3.9+
+- PyMuPDF (`pip install PyMuPDF`) - for PDF parsing
+- lxml (`pip install lxml`) - for PPTX manipulation
+
+---
+
+## Known Limitations
+
+1. **Images not auto-migrated** - Image extraction exists but reinsertion is not implemented
+2. **Table structure lost** - Tables become plain text, need manual recreation
+3. **Multi-column layouts** - Content merges into single column
+4. **Vector graphics** - SVGs and charts in PDFs not extracted
+5. **Embedded fonts** - Unusual fonts may not render correctly
 
 ---
 
 ## Brand Reference
 
-| Color | Hex |
-|-------|-----|
-| Drupal Blue | #009CDE |
-| Navy | #12285F |
-| Yellow | #FFC423 |
-| Red | #F46351 |
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Drupal Blue | #009CDE | Primary, CTAs |
+| Navy | #12285F | Headers, footers |
+| Yellow | #FFC423 | Highlights |
+| Red | #F46351 | Alerts, energy |
 
-**Fonts**: ZT Gatha (headlines), Noto Sans (body)
+**Fonts:** ZT Gatha (headlines), Noto Sans (body)
 
 ---
 
-## Future Work: Additional Input Formats
+## Testing
 
-The migration tool is designed to be extensible. Future versions should support additional input formats beyond PPTX, Markdown, and CSV:
+Run the test suite:
+```bash
+python3 test_migrate.py
+```
 
-### Planned Format Support
-
-| Format | Use Case | Parsing Strategy |
-|--------|----------|------------------|
-| Word Documents (.docx) | Migration from Word-based presentations/handouts | Extract text, headings, images; map H1→title, body→content |
-| PDF Files (.pdf) | Migration from locked/legacy decks | OCR or text extraction; page→slide mapping |
-| Google Slides | Direct API integration | Use Google Slides API to extract slide content |
-| HTML/Markdown | Web content migration | Parse document structure, extract headings and content blocks |
-
-### Implementation Notes
-
-Each format parser should:
-1. Extract slide-like content units (page breaks, sections, or explicit markers)
-2. Identify title vs body content
-3. Extract and reference images
-4. Output standard slide dictionaries compatible with `migrate_presentation()`
-
-### Priority
-
-1. **Word Documents** - Common for proposal content, easy win
-2. **PDFs** - Useful for archived presentations
-3. **HTML** - Website content migration
-4. **Google Slides** - Native integration for Google Workspace users
+All 14 tests should pass, covering:
+- Title slides
+- Statistics
+- Quotes
+- Bullet lists
+- Content type detection

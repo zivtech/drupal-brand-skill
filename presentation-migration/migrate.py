@@ -749,6 +749,105 @@ def parse_pptx(pptx_path):
     return slides
 
 
+def parse_pdf(pdf_path):
+    """Extract content from PDF file.
+
+    LIMITATIONS:
+    - Text embedded in images (decorative text, logos) will NOT be extracted
+    - Complex layouts may not preserve structure (tables, multi-column)
+    - Image extraction captures raster images only, not vector graphics
+    - Page order is preserved but slide boundaries may need manual review
+
+    For best results:
+    - Use PDFs exported from PowerPoint (text preserved as text)
+    - Avoid PDFs that are scanned images
+    - Review output and manually adjust content as needed
+
+    Returns:
+        List of slide dicts with 'number', 'title', 'body', 'images' keys
+    """
+    try:
+        import fitz  # PyMuPDF
+    except ImportError:
+        raise ImportError(
+            "PyMuPDF (fitz) is required for PDF parsing. "
+            "Install with: pip install PyMuPDF"
+        )
+
+    slides = []
+    doc = fitz.open(pdf_path)
+
+    print(f"  PDF has {len(doc)} pages")
+
+    for page_num, page in enumerate(doc, 1):
+        # Extract text
+        text = page.get_text().strip()
+
+        # Split into lines and clean
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+
+        # Heuristic: First substantial line is title, rest is body
+        title = ''
+        body_lines = []
+
+        for i, line in enumerate(lines):
+            if not title and len(line) > 2:
+                title = line
+            elif title:
+                body_lines.append(line)
+
+        body = '\n'.join(body_lines)
+
+        # Extract images info (for later processing)
+        images = page.get_images()
+        image_count = len(images)
+
+        # Track extraction quality
+        text_chars = len(text)
+        has_minimal_text = text_chars < 50
+
+        slide = {
+            'number': page_num,
+            'layout': 'DEFAULT',
+            'title': clean_text(title),
+            'body': clean_text(body),
+            'image_count': image_count,
+            '_extraction_notes': []
+        }
+
+        # Add warnings for potential issues
+        if has_minimal_text and image_count > 0:
+            slide['_extraction_notes'].append(
+                f"WARNING: Only {text_chars} chars extracted but {image_count} images found. "
+                "Text may be embedded in images."
+            )
+
+        if not title and not body:
+            slide['_extraction_notes'].append(
+                "WARNING: No text extracted. This may be a title slide with image-based text."
+            )
+
+        slides.append(slide)
+
+    doc.close()
+
+    # Print extraction summary
+    print(f"\n  Extraction Summary:")
+    warnings = 0
+    for slide in slides:
+        if slide.get('_extraction_notes'):
+            warnings += 1
+            for note in slide['_extraction_notes']:
+                print(f"    Page {slide['number']}: {note}")
+
+    if warnings > 0:
+        print(f"\n  {warnings} pages may need manual review.")
+    else:
+        print(f"  All {len(slides)} pages extracted successfully.")
+
+    return slides
+
+
 def detect_and_parse(input_path):
     """Detect input format and parse accordingly."""
     path = Path(input_path)
@@ -763,6 +862,9 @@ def detect_and_parse(input_path):
     elif suffix in ['.pptx', '.ppt']:
         print(f"Detected PPTX input: {path.name}")
         return parse_pptx(path)
+    elif suffix == '.pdf':
+        print(f"Detected PDF input: {path.name}")
+        return parse_pdf(path)
     else:
         raise ValueError(f"Unsupported input format: {suffix}")
 
@@ -930,14 +1032,14 @@ def replace_text_in_slide(slide_path, new_title, new_body, title_font_size=2400,
                 body_shape = text_boxes[1]
 
     # Calculate font sizes based on placeholder dimensions
-    if title_shape and new_title:
+    if title_shape is not None and new_title:
         title_width = get_placeholder_width(title_shape)
         if title_width:
             title_font_size = calculate_font_size(
                 new_title, title_width, title_font_size, 1800  # Min 18pt for titles
             )
 
-    if body_shape and new_body:
+    if body_shape is not None and new_body:
         body_width = get_placeholder_width(body_shape)
         if body_width:
             body_font_size = calculate_font_size(
