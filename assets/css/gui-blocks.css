@@ -29,3 +29,54 @@
   border-radius: 50%;
   border: 2px solid var(--border-color, #000000);
 }
+
+/* CSS-based GUI Block with Diagonal Stripes */
+.gui-block-with-stripes {
+  position: relative;
+  background: #12285F; /* Navy Blue */
+  border-radius: 0 24px 24px 0;
+  padding: 40px;
+  color: white;
+}
+
+.gui-block-with-stripes::before {
+  content: 
+    /* Create the diagonal stripes */
+    repeating-linear-gradient(
+      45deg,
+      #FFFFFF 0px,
+      #FFFFFF 8px,
+      transparent 8px,
+      transparent 16px
+    );
+  position: absolute;
+  left: -40px;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+}
+
+/* CSS-based Frame with Non-Warping Dots */
+.css-frame {
+  border: 8px solid #FFC423; /* Drupal Yellow */
+  border-radius: 24px;
+  position: relative;
+}
+
+.css-frame .dots {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg width=\'40\\' height=\'10\\' viewBox=\'0 0 40 10\\' fill=\'none\\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ccircle cx=\'5\\' cy=\'5\\' r=\'4.5\\' stroke=\'%23FFC423\\'/%3E%3Ccircle cx=\'20\\' cy=\'5\\' r=\'4.5\\' stroke=\'%23FFC423\\'/%3E%3Ccircle cx=\'35\\' cy=\'5\\' r=\'4.5\\' stroke=\'%23FFC423\\'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+}
+
+/* Accessible Text Container */
+.text-on-image {
+  background-color: rgba(18, 40, 95, 0.8); /* Semi-transparent Navy */
+  padding: 20px;
+  border-radius: 16px;
+  color: white;
+}
