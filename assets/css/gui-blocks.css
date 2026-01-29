@@ -1,34 +1,96 @@
-/* GUI Block with Outward Diagonal Stripes and Dual-Color Border */
-.gui-block-striped-outward {
+/* GUI Block Base */
+.gui-block {
   position: relative;
-  background: #12285F; /* Navy Blue */
-  border-radius: 24px;
-  padding: 40px;
-  color: white;
-  box-shadow: 0 0 0 2px #00B9F1; /* Light Blue Outline */
+  border-radius: 32px;
+  overflow: visible;
 }
 
-.gui-block-striped-outward::before {
-  content: 
-    /* Create the diagonal stripes extending outward */
-    repeating-linear-gradient(
-      -45deg,
-      #12285F 0px,
-      #12285F 8px,
-      transparent 8px,
-      transparent 16px
-    );
+/* Triple Border: Navy + Yellow + Blue */
+.gui-block-triple-navy-yellow-blue {
+  border: 8px solid #009CDE; /* Blue inner */
+  box-shadow: 
+    0 0 0 16px #FFC423, /* Yellow middle */
+    0 0 0 24px #12285F; /* Navy outer */
+}
+
+/* Double Border: Blue + White */
+.gui-block-double-blue-white {
+  border: 8px solid #FFFFFF; /* White inner */
+  box-shadow: 0 0 0 16px #009CDE; /* Blue outer */
+}
+
+/* Double Border: Blue + Navy */
+.gui-block-double-blue-navy {
+  border: 8px solid #12285F; /* Navy inner */
+  box-shadow: 0 0 0 16px #009CDE; /* Blue outer */
+}
+
+/* Double Border: Coral + White */
+.gui-block-double-coral-white {
+  border: 8px solid #FFFFFF; /* White inner */
+  box-shadow: 0 0 0 16px #FF6B6B; /* Coral outer */
+}
+
+/* Diagonal Stripes - Left Edge */
+.gui-block-stripes-left::before {
+  content: '';
   position: absolute;
   left: -40px;
   top: 0;
   bottom: 0;
   width: 40px;
+  background: repeating-linear-gradient(
+    -45deg,
+    currentColor 0px,
+    currentColor 8px,
+    transparent 8px,
+    transparent 16px
+  );
 }
+
+/* Diagonal Stripes - Right Edge */
+.gui-block-stripes-right::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: repeating-linear-gradient(
+    45deg,
+    currentColor 0px,
+    currentColor 8px,
+    transparent 8px,
+    transparent 16px
+  );
+}
+
+/* Diagonal Stripes - Bottom Right Corner */
+.gui-block-stripes-corner::after {
+  content: '';
+  position: absolute;
+  right: -40px;
+  bottom: -40px;
+  width: 80px;
+  height: 80px;
+  background: repeating-linear-gradient(
+    45deg,
+    currentColor 0px,
+    currentColor 8px,
+    transparent 8px,
+    transparent 16px
+  );
+}
+
+/* Color Variants for Stripes */
+.stripes-blue { color: #009CDE; }
+.stripes-navy { color: #12285F; }
+.stripes-coral { color: #FF6B6B; }
 
 /* Accessible Text Container */
 .text-on-image {
-  background-color: rgba(18, 40, 95, 0.8); /* Semi-transparent Navy */
-  padding: 20px;
+  background-color: rgba(18, 40, 95, 0.9); /* Semi-transparent Navy */
+  padding: 24px;
   border-radius: 16px;
   color: white;
 }
