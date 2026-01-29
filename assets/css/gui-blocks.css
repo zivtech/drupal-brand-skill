@@ -1,51 +1,20 @@
-/* Diagonal Stripe Pattern */
-.gui-block-striped {
-  position: relative;
-  border: 20px solid transparent;
-  border-radius: 32px;
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      var(--border-color, #FFC423),
-      var(--border-color, #FFC423) 10px,
-      #FFFFFF 10px,
-      #FFFFFF 20px
-    );
-  background-clip: border-box;
-}
-
-/* Control Dots */
-.control-dots {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  display: flex;
-  gap: 8px;
-}
-
-.control-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--border-color, #000000);
-}
-
-/* CSS-based GUI Block with Diagonal Stripes */
-.gui-block-with-stripes {
+/* GUI Block with Outward Diagonal Stripes and Dual-Color Border */
+.gui-block-striped-outward {
   position: relative;
   background: #12285F; /* Navy Blue */
-  border-radius: 0 24px 24px 0;
+  border-radius: 24px;
   padding: 40px;
   color: white;
+  box-shadow: 0 0 0 2px #00B9F1; /* Light Blue Outline */
 }
 
-.gui-block-with-stripes::before {
+.gui-block-striped-outward::before {
   content: 
-    /* Create the diagonal stripes */
+    /* Create the diagonal stripes extending outward */
     repeating-linear-gradient(
-      45deg,
-      #FFFFFF 0px,
-      #FFFFFF 8px,
+      -45deg,
+      #12285F 0px,
+      #12285F 8px,
       transparent 8px,
       transparent 16px
     );
@@ -54,23 +23,6 @@
   top: 0;
   bottom: 0;
   width: 40px;
-}
-
-/* CSS-based Frame with Non-Warping Dots */
-.css-frame {
-  border: 8px solid #FFC423; /* Drupal Yellow */
-  border-radius: 24px;
-  position: relative;
-}
-
-.css-frame .dots {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 40px;
-  height: 10px;
-  background-image: url("data:image/svg+xml,%3Csvg width=\'40\\' height=\'10\\' viewBox=\'0 0 40 10\\' fill=\'none\\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ccircle cx=\'5\\' cy=\'5\\' r=\'4.5\\' stroke=\'%23FFC423\\'/%3E%3Ccircle cx=\'20\\' cy=\'5\\' r=\'4.5\\' stroke=\'%23FFC423\\'/%3E%3Ccircle cx=\'35\\' cy=\'5\\' r=\'4.5\\' stroke=\'%23FFC423\\'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
 }
 
 /* Accessible Text Container */
