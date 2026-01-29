@@ -349,6 +349,30 @@ See `/templates/presentations/BRAND_COMPLIANCE_CHECKLIST.md` for the checklist t
 - Test in grayscale
 - Semantic structure
 
+## Presentation Migration
+
+This skill uses the **[claude-presentation-toolkit](https://github.com/zivtech/claude-presentation-toolkit)** for programmatic presentation migration. The toolkit provides generic presentation processing capabilities, while this skill provides Drupal-specific brand configuration.
+
+### Dependencies
+
+- `claude-presentation-toolkit` - Generic presentation migration engine
+- Brand config: `brand-config/presentation.yaml` - Drupal-specific colors, fonts, layouts
+
+### Usage with Toolkit
+
+```bash
+# Install the toolkit
+pip install git+https://github.com/zivtech/claude-presentation-toolkit.git
+
+# Migrate a presentation to Drupal brand
+pptx-migrate input.pptx output.pptx \
+    --config brand-config/presentation.yaml \
+    --template templates/presentations/drupal-brand-template.pptx
+
+# Analyze for Drupal brand compliance
+pptx-analyze deck.pptx --config brand-config/presentation.yaml
+```
+
 ## File Structure
 
 ```
@@ -364,4 +388,5 @@ See `/templates/presentations/BRAND_COMPLIANCE_CHECKLIST.md` for the checklist t
 /patterns/             Dynamic patterns (SVG and PNG)
 /fonts/                ZT Gatha, Noto Sans
 /templates/            Presentation templates (PPTX)
+/brand-config/         Brand configuration for presentation toolkit
 ```

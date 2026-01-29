@@ -1,0 +1,354 @@
+# Drupal Brand Configuration for Presentation Toolkit
+# All brand-specific values extracted from the original migrate.py
+
+version: "1.0"
+brand_name: "Drupal"
+
+# Template files (relative to drupal-brand-skill root)
+template:
+  default: "templates/presentations/drupal-brand-template.pptx"
+  extended: "templates/presentations/drupal-brand-template-extended.pptx"
+
+# Drupal brand colors
+colors:
+  primary:
+    drupal_blue: "009CDE"
+    dark_blue: "006AA9"
+    navy: "12285F"
+  secondary:
+    light_blue: "CCEDF9"
+    white: "FFFFFF"
+    black: "000000"
+  tertiary:
+    purple: "CCBAF4"
+    yellow: "FFC423"
+    red: "F46351"
+    green: "397618"
+
+# Font configuration
+fonts:
+  brand:
+    - "ZT Gatha"
+    - "Noto Sans"
+    - "Noto"
+  replace:
+    - "Ubuntu"
+    - "Arial"
+    - "Calibri"
+    - "Helvetica"
+    - "Verdana"
+    - "Tahoma"
+    - "Times"
+    - "Georgia"
+  mapping:
+    headlines: "ZT Gatha Bold"
+    subheads: "ZT Gatha SemiBold"
+    body: "Noto Sans Regular"
+    emphasis: "Noto Sans Bold"
+    medium: "Noto Sans Medium"
+    captions: "Noto Sans Italic"
+
+# Slide catalog - maps content categories to template slide indices
+slide_catalog:
+  # Opening slides
+  title_opening:
+    indices: [0]
+    description: "SLIDE-TITLE-SPEAKER - Blue bg, speaker info"
+  hero_photo:
+    indices: [1]
+    description: "SLIDE-HERO-PHOTO - Photo bg with Navy GUI block"
+  statement_center:
+    indices: [3, 33]
+    description: "Centered statements - Light pattern bg"
+
+  # Section dividers
+  section_divider:
+    indices: [40]
+    description: "Blue bg, large title"
+
+  # Content with image LEFT (text on right)
+  content_image_left:
+    indices: [38]
+    description: "SLIDE-CONTENT-RIGHT - Blue bg, white GUI frame"
+
+  # Content with image RIGHT (text on left)
+  content_image_right:
+    indices: [2, 9]
+    description: "Yellow bg (2) or White bg with photo grid (9)"
+
+  # Feature slides with bullets (various colors)
+  feature_blue_bg:
+    indices: [21]
+    description: "Blue background, yellow GUI frame"
+  feature_yellow_bg:
+    indices: [2]
+    description: "Yellow background"
+  feature_white_bg:
+    indices: [9, 20]
+    description: "White background variations"
+  feature_coral_gui:
+    indices: [19]
+    description: "White bg, coral filled GUI block"
+  feature_yellow_gui:
+    indices: [18]
+    description: "White bg, yellow filled GUI block"
+
+  # Statistics slides (8 variations!)
+  stat_outline_gui:
+    indices: [10]
+    description: "Navy/Yellow/Blue outline GUI, stat on left"
+  stat_coral_filled:
+    indices: [11, 12]
+    description: "Coral filled GUI block"
+  stat_photo_left:
+    indices: [13, 14]
+    description: "Photo on left with stat"
+  stat_navy_filled:
+    indices: [15, 16]
+    description: "Navy filled GUI block"
+  stat_photo_bg:
+    indices: [16, 17]
+    description: "Full photo background"
+
+  # Quote slides
+  quote_navy_bg:
+    indices: [8]
+    description: "Navy bg, white GUI block with attribution"
+  quote_centered:
+    indices: [41]
+    description: "Navy bg, centered in white GUI block"
+
+  # Two-column layouts
+  two_column:
+    indices: [42, 44]
+    description: "Comparison, before/after, pros/cons"
+
+  # Photo feature slides
+  photo_text_left:
+    indices: [35]
+    description: "Full photo bg, Blue GUI block on left"
+  photo_text_right:
+    indices: [47]
+    description: "White bg, Navy GUI block on left"
+
+  # Speaker/bio slides
+  speaker_bio:
+    indices: [36]
+    description: "Photo in pink GUI, bio on right"
+
+  # Numbered content (step-by-step)
+  numbered_02:
+    indices: [29]
+    description: "Coral filled GUI"
+  numbered_03:
+    indices: [30]
+    description: "Blue outline GUI"
+  numbered_04:
+    indices: [31]
+    description: "Yellow filled GUI"
+  numbered_05:
+    indices: [32]
+    description: "Coral outline GUI"
+
+  # Closing slides
+  closing_cta:
+    indices: [33]
+    description: "Light pattern, centered CTA"
+  closing_statement:
+    indices: [46]
+    description: "White bg, light blue GUI block"
+
+  # Blank/flexible templates
+  blank_title_image:
+    indices: [27]
+    description: "Title left, image right"
+  blank_full_image:
+    indices: [28]
+    description: "Full-bleed image right"
+
+  # Extended template slides (slides 49-50)
+  # Use drupal-brand-template-extended.pptx for these
+  stats_dashboard:
+    indices: [49]
+    description: "6-zone stats layout"
+  case_study_full:
+    indices: [50]
+    description: "Description + bullets + quote"
+
+# Text capacity limits per layout
+# Values: [title_max_chars, body_max_chars, title_font_size, body_font_size]
+# Font sizes are in hundredths of a point (2400 = 24pt)
+text_capacity:
+  # Opening slides - large titles, minimal body
+  title_opening: [200, 150, 3600, 1800]
+  hero_photo: [150, 300, 3600, 1400]
+  statement_center: [200, 300, 3200, 1600]
+
+  # Section dividers - allow longer titles
+  section_divider: [150, 300, 4000, 1800]
+
+  # Content with image (half slide for text)
+  content_image_left: [150, 500, 2400, 1400]
+  content_image_right: [150, 500, 2400, 1400]
+
+  # Feature slides - medium text areas
+  feature_blue_bg: [150, 500, 2400, 1400]
+  feature_yellow_bg: [150, 500, 2400, 1400]
+  feature_white_bg: [150, 500, 2400, 1400]
+  feature_coral_gui: [150, 500, 2400, 1400]
+  feature_yellow_gui: [150, 500, 2400, 1400]
+
+  # Statistics - large number, supporting text
+  stat_outline_gui: [50, 500, 7200, 1400]
+  stat_coral_filled: [50, 500, 7200, 1400]
+  stat_photo_left: [50, 500, 7200, 1400]
+  stat_navy_filled: [50, 500, 7200, 1400]
+  stat_photo_bg: [50, 400, 7200, 1400]
+
+  # Quotes - medium quote, short attribution
+  quote_navy_bg: [300, 200, 2400, 1600]
+  quote_centered: [300, 200, 2800, 1400]
+
+  # Two-column - split content
+  two_column: [100, 600, 2400, 1200]
+
+  # Photo features
+  photo_text_left: [150, 300, 2800, 1400]
+  photo_text_right: [150, 400, 2400, 1400]
+
+  # Speaker bio
+  speaker_bio: [100, 500, 3200, 1400]
+
+  # Numbered content
+  numbered_02: [50, 500, 7200, 1400]
+  numbered_03: [50, 500, 7200, 1400]
+  numbered_04: [50, 500, 7200, 1400]
+  numbered_05: [50, 500, 7200, 1400]
+
+  # Closing
+  closing_cta: [200, 200, 3200, 1800]
+  closing_statement: [300, 200, 2000, 1400]
+
+  # Blank/flexible
+  blank_title_image: [200, 300, 2800, 1400]
+  blank_full_image: [200, 300, 2800, 1400]
+
+  # Extended template slides
+  stats_dashboard: [50, 300, 7200, 1800]
+  case_study_full: [100, 600, 2400, 1400]
+
+  # Default fallback
+  default: [150, 500, 2400, 1400]
+
+# Content type detection patterns (Drupal-specific keywords added)
+content_patterns:
+  statistic:
+    title_patterns:
+      - '^\d+%'
+      - '^\$[\d,]+'
+      - '^[\d,]+\+?\s*(million|billion|users|websites|developers|organizations)'
+      - '^\d+x'
+      - '^\d+/\d+'
+      - '^#\d+'
+    anywhere_patterns:
+      - '\b\d{2,}%\b'
+      - '\b\d+\s*(million|billion)\b'
+      - '\bover\s+\d+'
+      - '\bmore than\s+\d+'
+
+  quote:
+    title_patterns:
+      - '^["""]'
+    body_patterns:
+      - '^\s*—'
+      - 'said\s+\w+'
+
+  numbered_step:
+    title_patterns:
+      - '^(step\s*)?\d+[.:\)]'
+      - '^(first|second|third|fourth|fifth)'
+      - '\bphase\s*\d+'
+      - '\bpart\s*\d+'
+
+  bullet_list:
+    body_patterns:
+      - '^\s*[-•▪]\s+'
+      - '\n\s*[-•▪]\s+'
+
+  comparison:
+    anywhere_patterns:
+      - '\bvs\.?\b'
+      - '\bbefore\b.*\bafter\b'
+      - '\bpros?\b.*\bcons?\b'
+
+  section_header:
+    keywords:
+      - 'overview'
+      - 'introduction'
+      - 'summary'
+      - 'agenda'
+      - 'contents'
+      - 'why'
+      - 'what is'
+      - 'features'
+      - 'benefits'
+      - 'resources'
+
+  case_study:
+    keywords:
+      - 'customer'
+      - 'client'
+      - 'case study'
+      - 'success story'
+      - 'testimonial'
+      - 'partner'
+      - 'rebuilt'
+      - 'transformed'
+      - 'organization'
+      - 'implemented'
+      - 'content hub'
+      - 'replatform'
+      - 'arsenal'
+      - 'premier league'
+      - 'health portal'
+    title_patterns:
+      - '\bhow\s+\w+\s+(rebuilt|transformed|migrated|updated|launched)'
+
+  feature:
+    keywords:
+      - 'feature'
+      - 'capability'
+      - 'integration'
+      - 'benefit'
+      - 'advantage'
+      - 'solution'
+      - 'powerful'
+      - 'flexible'
+      - 'drupal'
+      - 'cms'
+      - 'content management'
+
+# Orientation configuration for layout variety
+orientations:
+  left:
+    - 'content_image_left'
+    - 'photo_text_left'
+    - 'stat_photo_left'
+  right:
+    - 'content_image_right'
+    - 'photo_text_right'
+    - 'feature_white_bg'
+  center:
+    - 'statement_center'
+    - 'quote_centered'
+    - 'section_divider'
+    - 'closing_cta'
+    - 'stats_dashboard'
+    - 'case_study_full'
+
+# GUI block color rotation order (Drupal brand)
+gui_colors:
+  - 'blue'
+  - 'coral'
+  - 'yellow'
+  - 'navy'
