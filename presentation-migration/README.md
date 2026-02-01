@@ -331,3 +331,61 @@ All 14 tests should pass, covering:
 - Quotes
 - Bullet lists
 - Content type detection
+
+---
+
+## Toolkit-Based Migration (New)
+
+A new migration approach using the refactored `presentation-toolkit` is available. This provides:
+
+- **Structured extraction**: Preserves shape relationships, bullet structure, tables
+- **Claude-powered classification**: More accurate content type detection (with heuristic fallback)
+- **Output validation**: Verifies content is preserved in output
+- **Cleaner architecture**: Modular components for customization
+
+### Installation
+
+```bash
+# Install the toolkit
+pip install git+https://github.com/zivtech/claude-presentation-toolkit.git
+```
+
+### Usage
+
+```bash
+# Using the toolkit-based migration
+python3 toolkit_migrate.py input.pptx output.pptx
+
+# With heuristic classification (no Anthropic API needed)
+python3 toolkit_migrate.py input.pptx output.pptx --no-claude
+
+# Using extended template
+python3 toolkit_migrate.py input.pptx output.pptx --extended
+```
+
+### Python API
+
+```python
+from toolkit_migrate import migrate_to_drupal_brand
+
+result = migrate_to_drupal_brand(
+    source_path="input.pptx",
+    output_path="output.pptx",
+    use_claude=True,  # Set False for heuristic-only
+)
+
+if result.success:
+    print(f"Created: {result.output_path}")
+else:
+    print(result.summary())
+```
+
+### When to Use Which
+
+| Use Case | Tool |
+|----------|------|
+| PDF input | `migrate.py` (has PDF extraction) |
+| PPTX input, quick migration | `toolkit_migrate.py` (better extraction) |
+| Markdown/CSV input | `migrate.py` |
+| Custom classification logic | `toolkit_migrate.py` (extensible) |
+| Validation of output | `toolkit_migrate.py` (built-in)
