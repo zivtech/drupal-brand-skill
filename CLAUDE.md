@@ -395,7 +395,16 @@ See `/templates/presentations/BRAND_COMPLIANCE_CHECKLIST.md` for the checklist t
 - Test in grayscale
 - Semantic structure
 
-## Presentation Migration
+## Presentation Creation & Migration
+
+There are two methods for creating Drupal-branded presentations:
+
+1.  **Manus Skill (Recommended)**: For creating new presentations from scratch or repairing existing ones. This method uses Manus's native `slide` tools and is the most reliable. See the `manus-skill/` directory for the full skill.
+2.  **Legacy Toolkit (Advanced)**: For programmatic migration of existing PPTX files. This method uses the `ai-presentation-toolkit` and is more suitable for developers. See below for details.
+
+### Legacy Toolkit Details
+
+**Note**: This section describes the legacy `ai-presentation-toolkit` approach. For creating new presentations, it is recommended to use the Manus-specific skill in the `manus-skill` directory.
 
 This skill uses the **[ai-presentation-toolkit](https://github.com/zivtech/ai-presentation-toolkit)** for programmatic presentation migration. The toolkit provides generic presentation processing capabilities, while this skill provides Drupal-specific brand configuration.
 

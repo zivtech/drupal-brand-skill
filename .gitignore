@@ -1,5 +1,6 @@
 .DS_Store
-SKILL.md
+/SKILL.md
+!manus-skill/SKILL.md
 
 # Test outputs (large PPTX files)
 presentation-migration/test-output/

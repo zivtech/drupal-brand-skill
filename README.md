@@ -151,3 +151,11 @@ git pull origin main
 ```
 
 The updated skill will be available in your next Claude Code session.
+
+## Manus Presentation Skill
+
+For users who want to create Drupal-branded presentations using [Manus](https://manus.im), a dedicated skill is available in the `manus-skill/` directory. This approach does not require Claude Code or the `ai-presentation-toolkit` and is suitable for users who want a browser-based workflow.
+
+The skill provides a comprehensive workflow, asset catalog, and proven layout techniques for building and repairing presentations using Manus's native slide tools. It is based on the experience of building an 88-slide Drupal pitch deck and contains specific troubleshooting guidance for common issues.
+
+To use this skill, point Manus at this repository and reference `manus-skill/SKILL.md`.
