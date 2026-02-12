@@ -351,18 +351,18 @@ See `/templates/presentations/BRAND_COMPLIANCE_CHECKLIST.md` for the checklist t
 
 ## Presentation Migration
 
-This skill uses the **[claude-presentation-toolkit](https://github.com/zivtech/claude-presentation-toolkit)** for programmatic presentation migration. The toolkit provides generic presentation processing capabilities, while this skill provides Drupal-specific brand configuration.
+This skill uses the **[ai-presentation-toolkit](https://github.com/zivtech/ai-presentation-toolkit)** for programmatic presentation migration. The toolkit provides generic presentation processing capabilities, while this skill provides Drupal-specific brand configuration.
 
 ### Dependencies
 
-- `claude-presentation-toolkit` - Generic presentation migration engine
+- `ai-presentation-toolkit` - Generic presentation migration engine
 - Brand config: `brand-config/presentation.yaml` - Drupal-specific colors, fonts, layouts
 
 ### Usage with Toolkit
 
 ```bash
 # Install the toolkit
-pip install git+https://github.com/zivtech/claude-presentation-toolkit.git
+pip install git+https://github.com/zivtech/ai-presentation-toolkit.git
 
 # Migrate a presentation to Drupal brand
 pptx-migrate input.pptx output.pptx \

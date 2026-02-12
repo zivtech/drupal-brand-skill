@@ -2,7 +2,7 @@
 """
 Drupal Brand Migration using Presentation Toolkit.
 
-This module integrates the claude-presentation-toolkit with Drupal-specific
+This module integrates the ai-presentation-toolkit with Drupal-specific
 brand configuration for intelligent presentation migration.
 
 Key features:
@@ -60,7 +60,7 @@ try:
 except ImportError:
     TOOLKIT_AVAILABLE = False
     print("Warning: presentation_toolkit not installed. Install with:")
-    print("  pip install git+https://github.com/zivtech/claude-presentation-toolkit.git")
+    print("  pip install git+https://github.com/zivtech/ai-presentation-toolkit.git")
 
 
 # Default paths
@@ -462,7 +462,7 @@ def main():
         print("  --no-images    Skip image extraction")
         print("  --extended     Use extended template (more layouts)")
         print("")
-        print("Requires: pip install git+https://github.com/zivtech/claude-presentation-toolkit.git")
+        print("Requires: pip install git+https://github.com/zivtech/ai-presentation-toolkit.git")
         sys.exit(1)
 
     source = sys.argv[1]

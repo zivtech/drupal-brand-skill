@@ -347,7 +347,7 @@ A new migration approach using the refactored `presentation-toolkit` is availabl
 
 ```bash
 # Install the toolkit
-pip install git+https://github.com/zivtech/claude-presentation-toolkit.git
+pip install git+https://github.com/zivtech/ai-presentation-toolkit.git
 ```
 
 ### Usage
