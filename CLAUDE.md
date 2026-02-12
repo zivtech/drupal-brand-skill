@@ -64,6 +64,20 @@ You help create on-brand Drupal designs, marketing materials, and visual content
 - **Creative**: Purple + Blue + White
 - **Bold**: Red + Yellow + Navy
 
+### CSS Variables
+```css
+:root {
+  --drupal-blue: #009CDE;
+  --drupal-dark-blue: #006AA9;
+  --drupal-navy: #12285F;
+  --drupal-light-blue: #CCEDF9;
+  --drupal-purple: #CCBAF4;
+  --drupal-yellow: #FFC423;
+  --drupal-red: #F46351;
+  --drupal-green: #397618;
+}
+```
+
 ## Logo System
 
 ### Types
@@ -103,17 +117,49 @@ You help create on-brand Drupal designs, marketing materials, and visual content
 - **Italic**: Citations
 
 ### Hierarchy
-| Level | Size | Font |
-|-------|------|------|
-| H1 | 48-60px | ZT Gatha Bold |
-| H2 | 36-42px | ZT Gatha/Noto Bold |
-| H3 | 24-30px | Noto Sans |
-| Body | 16-18px | Noto Sans |
+| Level | Size (px) | Size (rem) | Font |
+|-------|-----------|------------|------|
+| H1 | 48-60px | 3-3.75rem | ZT Gatha Bold |
+| H2 | 36-42px | 2.25-2.625rem | ZT Gatha/Noto Bold |
+| H3 | 24-30px | 1.5-1.875rem | Noto Sans |
+| Body | 16-18px | 1-1.125rem | Noto Sans |
+| Small | 14px | 0.875rem | Noto Sans |
+| Caption | 12px | 0.75rem | Noto Sans Italic |
+
+### Type Scale (CSS)
+```css
+:root {
+  --text-xs: 0.75rem;    /* 12px - captions */
+  --text-sm: 0.875rem;   /* 14px - small text */
+  --text-base: 1rem;     /* 16px - body */
+  --text-lg: 1.125rem;   /* 18px - large body */
+  --text-xl: 1.5rem;     /* 24px - H3 */
+  --text-2xl: 1.875rem;  /* 30px - H3 upper */
+  --text-3xl: 2.25rem;   /* 36px - H2 */
+  --text-4xl: 3rem;      /* 48px - H1 */
+  --text-5xl: 3.75rem;   /* 60px - H1 upper */
+}
+```
 
 ### Tips
 - Line height: 1.5 body, 1.2 headings
 - Line length: 60-80 characters
 - Sub-brands: Noto Sans Bold in Blue or Navy only
+
+### Spacing Scale (CSS)
+```css
+:root {
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-24: 6rem;     /* 96px - section gaps */
+}
+```
 
 ## GUI Blocks
 
