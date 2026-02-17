@@ -5,16 +5,18 @@ description: Create and repair on-brand Drupal presentations using Manus. This s
 
 # Drupal Presentation Creation & Repair with Manus
 
-This skill guides Manus in creating and repairing brand-compliant Drupal presentations. It is based on the experience of building and fixing an 88-slide deck and contains the specific workflows, asset paths, layout techniques, and troubleshooting steps required for success.
+This skill guides Manus in creating and repairing brand-compliant Drupal presentations. It is based on the experience of building and iteratively fixing an 88-slide deck and contains the specific workflows, asset paths, layout techniques, and troubleshooting steps required for success.
 
 ## Core Principle: Avoid Common Pitfalls
 
-Building presentations with code is fragile. This skill is designed to avoid common errors that lead to poor quality output. The most common errors are:
+Building presentations with code is fragile. The most common errors are:
 
 1.  **Stretched Images**: Using `background-size: 100% 100%` on GUI blocks or other images with fixed aspect ratios.
 2.  **Missing Images**: Referencing incorrect or non-existent image paths, especially after migrating from other systems (e.g., CDN URLs).
 3.  **Off-Center Text**: Text not being properly centered within GUI block frames or other layout elements.
 4.  **Empty GUI Blocks**: Using a GUI block as a side-panel decoration without placing content (an image or text) inside it.
+5.  **White Space Gaps**: Slides showing white space at the bottom when rendered in iframes due to incorrect viewport or scaling configuration.
+6.  **Monotonous Split Panels**: Using the same brand color and same side placement for all split-panel slides.
 
 This skill provides specific techniques to prevent and fix these issues.
 
@@ -63,3 +65,31 @@ This skill relies on the following reference files. Read them as needed.
 -   `references/asset_catalog.md`: A guide to the visual assets available in this repository.
 -   `references/layout_techniques.md`: A cookbook of proven HTML/CSS patterns for common slide layouts.
 -   `references/common_pitfalls.md`: A troubleshooting guide for the most frequent errors and their solutions.
+
+## Iframe Rendering Fix (Critical)
+
+When serving slides via an API endpoint and rendering in iframes, the following CSS transform scaling approach is required:
+
+1.  Set the iframe to a fixed 1280x720 size.
+2.  Use a `ResizeObserver` on the parent container to calculate `scale = containerWidth / 1280`.
+3.  Apply `transform: scale(${scale})` with `transform-origin: top left` to the iframe.
+4.  Set the parent container to `overflow: hidden` with explicit dimensions: `width: containerWidth`, `height: containerWidth * 9/16`.
+5.  Override inline `min-height: 720px` on `.slide-container` with `height: 720px !important` in the wrapper CSS.
+
+## Split-Panel Color Slide Guidelines
+
+When creating slides with a colored panel on one side and text on the other:
+
+-   **Alternate sides**: If slide N has color on the LEFT, slide N+1 should have color on the RIGHT.
+-   **Rotate brand colors**: Use a different color for each slide. The Drupal palette provides: Cyan (#009CDE), Navy (#12285F), Yellow (#FFC423), Orange (#FF6D42), Purple (#CCBAF4).
+-   **Set `min-height: 720px`** on the colored panel div to fill the full slide height.
+-   **Use 45%/55% split** (color panel 45%, text panel 55%) for balanced proportions.
+
+## PDF Generation
+
+To generate a PDF from the slide deck:
+
+1.  Use Playwright with `viewport={"width": 1280, "height": 720}` and `device_scale_factor=2`.
+2.  Navigate to each slide's API endpoint and wait for `networkidle` plus 500ms.
+3.  Take a screenshot of each slide (not full page).
+4.  Compile all screenshots into a landscape PDF using `fpdf2`.
